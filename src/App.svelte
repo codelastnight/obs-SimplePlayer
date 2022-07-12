@@ -672,28 +672,29 @@ $: if (player) {
     mute = false;
 }
 </script>
+<style global lang="postcss">
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
 
-<style>
-.progress .progress-bar {
+    .progress .progress-bar {
     -webkit-transition: none;
     -o-transition: none;
     transition: none;
 }
-</style>
+  </style>
 
 <svelte:window
     on:keyup={(e) => {
         if (!playListVisible) handleKeyboardPress(e.key);
     }} />
 
-<div class="container-fluid">
-    <div class="row">
+<main class="grid grid-cols-2 py-3 px-3 w-100">
+  
         {#if playListVisible}
-            <Playlist
-                {player}
-                on:changeSong={(event) => playPlaylistSong(event.detail.index)} />
+          
         {/if}
-        <div class="col-5 my-auto">
+        <section class="col-5 my-auto">
             {#if loading}
                 <div
                     class="spinner-border text-danger centerBlock"
@@ -701,11 +702,13 @@ $: if (player) {
                     role="status">
                     <span class="sr-only">Loading...</span>
                 </div>
-            {:else}<img id="picture" alt="" />{/if}
-        </div>
+            {:else}  <Playlist
+            {player}
+            on:changeSong={(event) => playPlaylistSong(event.detail.index)} />{/if}
+            </section>
 
-        <div class="col">
-            <div class="row">
+        <section class="">
+            <div class="">
                 <div class="col-md-12 text-center">
                     <TrackDetails
                         {trackName}
@@ -751,6 +754,5 @@ $: if (player) {
                         {mute} />
                 </div>
             </div>
-        </div>
-    </div>
-</div>
+        </section>
+    </main>

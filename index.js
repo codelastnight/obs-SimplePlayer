@@ -13,6 +13,8 @@ const fs = require('fs');
 const openAboutWindow = require('about-window').default;
 const isDev = require('electron-is-dev');
 const storage = require('electron-json-storage');
+
+// launch extra express server
 const { fork } = require('child_process')
 const ps = fork(`${__dirname}/server.js`)
 
@@ -66,10 +68,10 @@ function createMenu(theme, sort) {
         label: 'Info',
         click: function () {
             openAboutWindow({
-                product_name: 'Dusk Player',
-                homepage: 'https://home.aveek.io',
-                copyright: 'By Aveek Saha',
-                description: 'A minimal music player for your desktop',
+                product_name: 'OBS simple player :)',
+                homepage: 'https://github.com/codelastnight/obs-SimplePlayer',
+                copyright: 'arts + crafts',
+                description: 'i love frogs!!!!',
                 license: 'MIT',
                 icon_path: path.join(__dirname, 'build/icon.png')
             });
@@ -165,9 +167,9 @@ function createMenu(theme, sort) {
 
                     click: function () {
                         openAboutWindow({
-                            product_name: 'Dusk Player',
-                            homepage: 'https://home.aveek.io',
-                            copyright: 'By Aveek Saha',
+                            product_name: 'OBS simple player :)',
+                            homepage: 'https://github.com/codelastnight/obs-SimplePlayer',
+                            copyright: 'arts + crafts',
                             icon_path: path.join(__dirname, 'build/icon.png')
                         });
                     }
@@ -328,7 +330,7 @@ function scanDir(filePath) {
 }
 
 function createMenuOther(openFolder, theme, info, sort) {
-    var menu = Menu.buildFromTemplate([openFolder, theme, sort, info]);
+    var menu = Menu.buildFromTemplate([openFolder, sort, info]);
     Menu.setApplicationMenu(menu);
 }
 

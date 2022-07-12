@@ -31,6 +31,7 @@ function changeSong(number) {
     aria-label="Search" />
 <div id="playlist" class="list-group style-3">
     {#each list as song, index (song)}
+        <!-- svelte-ignore a11y-invalid-attribute -->
         <a
             href="javascript:;"
             class="list-group-item list-group-item-action list"
