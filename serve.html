@@ -1,0 +1,27 @@
+<html>
+    <body>
+        <h1 id="dub">love frogs </h1>
+        <ul id="list"></ul>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io();
+            var div = document.getElementById('list')
+            var div2 = document.getElementById('dub')
+
+            socket.on('onload', function(msg) {
+                div.innerText = msg
+                socket.emit('whoiam','reciever')
+
+              });
+            socket.on('whouare', function(msg) {
+                div.innerText = msg
+                socket.emit('ask4update', 'pls')
+            })
+            socket.on('update', function(msg) {
+                div2.innerText = msg.track
+            })
+
+          </script>
+
+    </body>
+</html>

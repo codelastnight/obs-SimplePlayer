@@ -12,6 +12,8 @@ const fs = require('fs');
 const openAboutWindow = require('about-window').default;
 const isDev = require('electron-is-dev');
 const storage = require('electron-json-storage');
+const { fork } = require('child_process')
+const ps = fork(`${__dirname}/server.js`)
 
 storage.getDataPath();
 let status = 0;
@@ -21,10 +23,10 @@ if (isDev) {
         electron: require(`${__dirname}/node_modules/electron`)
     });
 } else {
-    const server = 'http://hazel-duskplayer.vercel.app/';
-    const url = `${server}/update/${process.platform}/${app.getVersion()}`;
+    // const server = 'http://hazel-duskplayer.vercel.app/';
+    // const url = `${server}/update/${process.platform}/${app.getVersion()}`;
 
-    autoUpdater.setFeedURL({ url });
+    // autoUpdater.setFeedURL({ url });
 }
 
 function createMenu(theme, sort) {
@@ -347,3 +349,4 @@ function createMenuMac(openFolder, theme, sort, info) {
     ]);
     Menu.setApplicationMenu(menu);
 }
+

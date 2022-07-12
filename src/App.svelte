@@ -3,6 +3,9 @@ import Playlist from './Playlist.svelte';
 import TrackDetails from './TrackDetails.svelte';
 import PLaybackControls from './PlaybackControls.svelte';
 import Settings from './Settings.svelte';
+import {io} from 'socket.io-client';
+ 
+const socket = io('http://localhost:9990');
 
 const ipc = require('electron').ipcRenderer;
 const fs = require('fs');
@@ -10,8 +13,16 @@ const path = require('path');
 const storage = require('electron-json-storage');
 const mm = require('music-metadata');
 const chokidar = require('chokidar');
-
+let test = '';
 let watcher;
+socket.on('onload', function(msg) {
+        test = msg
+
+        socket.emit('whoiam','sender')
+ });
+socket.on('whouare', function(msg) {
+    test = msg
+})
 
 storage.getDataPath();
 
@@ -35,6 +46,12 @@ let offsetWidth;
 let shuffle = false;
 let mute = false;
 let slider = 100;
+
+socket.on('ask4update', function(msg) {
+    if (msg === 'pls') {
+        socket.emit('update', {track: trackName})
+    }
+})
 
 storage.has('settings', function (error, hasKey) {
     if (error) throw error;
@@ -358,6 +375,8 @@ function getTags(audioFile) {
             else trackArtist = '';
             if (album) trackAlbum = album;
             else trackAlbum = '';
+
+            socket.emit('update', {track: trackName})
             var img = document.getElementById('picture');
 
             if (metadata.common.picture) {
@@ -693,6 +712,7 @@ $: if (player) {
                         {trackArtist}
                         {trackAlbum}
                         {theme} />
+                        {test}
                 </div>
 
                 <div class="col-md-12 text-center">
