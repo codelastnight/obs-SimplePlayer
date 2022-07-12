@@ -4,8 +4,9 @@ const {
     dialog,
     Menu,
     ipcMain,
-    autoUpdater
 } = require('electron');
+const { autoUpdater } = require("electron-updater")
+
 const path = require('path');
 const url = require('url');
 const fs = require('fs');

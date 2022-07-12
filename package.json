@@ -1,11 +1,11 @@
 {
-  "name": "DuskPlayer",
-  "version": "6.0.0",
-  "homepage": "https://aveek-saha.github.io",
-  "description": "A minimal music player for your desktop",
+  "name": "obs-simpleplayer",
+  "version": "1.0.0",
+  "homepage": "",
+  "description": "simple music player meant for obs streams",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Aveek-Saha/MusicPlayer.git"
+    "url": "https://github.com/codelastnight/obs-SimplePlayer.git"
   },
   "main": "index.js",
   "scripts": {
@@ -21,8 +21,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "aveek-saha",
-        "repo": "MusicPlayer"
+        "owner": "codelastnight",
+        "repo": "obs-SimplePlayer"
       }
     ],
     "dmg": {
@@ -49,14 +49,18 @@
         "deb"
       ],
       "category": "Utility",
-      "maintainer": "Aveek <aveek.s98@gmail.com>",
+      "maintainer": "last night",
       "icon": "build"
     },
     "win": {
-      "icon": "build/icon.ico"
+      "icon": "build/icon.ico",
+      "target": ["portable"]
+    },
+    "portable": {
+      "artifactName": "pvmplayer_portable.exe"
     }
   },
-  "author": "Aveek Saha",
+  "author": "last night, Aveek Saha",
   "license": "MIT",
   "devDependencies": {
     "@rollup/plugin-commonjs": "11.0.2",
@@ -80,6 +84,7 @@
     "chokidar": "^3.5.1",
     "electron-is-dev": "^1.2.0",
     "electron-json-storage": "^4.3.0",
+    "electron-updater": "^5.0.5",
     "express": "^4.18.1",
     "howler": "^2.2.1",
     "jquery": "^3.5.1",
