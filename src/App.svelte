@@ -5,15 +5,14 @@ import PLaybackControls from './PlaybackControls.svelte';
 import Settings from './Settings.svelte';
 import {io} from 'socket.io-client';
  import {onMount} from 'svelte'
- import * as mm from 'music-metadata';
+ import './tailwind.css'
 const socket = io('http://localhost:9990');
-
-const fs = require('fs');
+const eAPI = window.electronAPI
+//const fs = require('fs');
 //const path = require('path');
 //const mm = require('music-metadata');
-const chokidar = require('chokidar');
+//const chokidar = require('chokidar');
 let test = '';
-let watcher;
 socket.on('onload', function(msg) {
         test = msg
 
@@ -49,20 +48,20 @@ let slider = 100;
 
 onMount(()=> {
     async function checkSettings()  {
-        const settings = await window.electronAPI.dataGet('settings')
-        const getpath = await window.electronAPI.dataGet('path')
-        const theme = await window.electronAPI.dataGet('theme')
+        const settings = await eAPI.dataGet('settings')
+        const getpath = await eAPI.dataGet('path')
+        const theme = await eAPI.dataGet('theme')
 
-        if (settings.type === 'ok') {
+        if (settings !== undefined && settings.type === 'ok') {
             if (settings.data.shuffle) shuffle = true;
             if (settings.data.volume) slider = settings.data.volume;
         }
-        if (theme.type === 'ok') {
+        if (theme!== undefined&& theme.type === 'ok') {
             setTheme(theme.data);
 
         }
-        if (getpath.type === 'ok') {
-            scanDir(getpath.data.path.toString());
+        if (getpath!== undefined &&getpath.type === 'ok') {
+            eAPI.handleScanDir(getpath.data.path.toString());
 
         }
     }
@@ -104,79 +103,17 @@ function setTheme(data) {
 }
 
 
-var walkSync = function (dir, filelist) {
-    files = fs.readdirSync(dir);
-    filelist = filelist || [];
-    files.forEach(function (file) {
-        if (fs.statSync(path.join(dir, file)).isDirectory()) {
-            filelist = walkSync(path.join(dir, file), filelist);
-        } else {
-            if (
-                file.endsWith('.mp3') ||
-                file.endsWith('.m4a') ||
-                file.endsWith('.webm') ||
-                file.endsWith('.wav') ||
-                file.endsWith('.aac') ||
-                file.endsWith('.ogg') ||
-                file.endsWith('.opus')
-            ) {
-                filelist.push(path.join(dir, file));
-            }
-        }
-    });
-    return filelist;
-};
 
-async function parseFiles(audioFiles) {
-    var titles = [];
 
-    loading = true;
 
-    for (const audioFile of audioFiles) {
-        // await will ensure the metadata parsing is completed before we move on to the next file
-        const metadata = await mm.parseFile(audioFile, { skipCovers: true });
-        const stats = fs.statSync(audioFile);
-        var data = {};
-        var title = metadata.common.title;
-        var artist = metadata.common.artist;
-        if (title) data.title = metadata.common.title;
-        else data.title = audioFile.split(path.sep).slice(-1)[0];
-        if (artist) data.artist = metadata.common.artist;
-        else data.artist = '';
-        data.modDate = stats.mtime;
 
-        titles.push(data);
-    }
-    loading = false;
-
-    return titles;
-}
-
-async function scanDir(filePath) {
-    if (!filePath || filePath == 'undefined') return;
-
-    watcher = chokidar.watch(filePath, {
-        ignored: /[\/\\]\./,
-        persistent: true
-    });
-
-    var arr = walkSync(filePath);
-    var arg = {};
-    var names = await parseFiles(arr);
-
-    arg.files = arr;
-    arg.path = filePath;
-    arg.names = names;
-
-    await startPlayer(arg);
-}
 
 function themeChange(data) {
     setTheme(data);
 }
 
 
-window.electronAPI.handleThemeChange((event, arg) => {
+eAPI.handleThemeChange((event, arg) => {
     themeChange(arg);
 })
 function sortByTitle(arr, des = false) {
@@ -229,7 +166,7 @@ function sortDefault(arr, des = false) {
     return arr;
 }
 
-window.electronAPI.handleThemeChange((event, arg) => {
+eAPI.handleSortChange((event, arg) => {
     if (player) {
         var index = player.playlist[player.index].index;
 
@@ -254,19 +191,28 @@ window.electronAPI.handleThemeChange((event, arg) => {
         player.index = player.playlist.findIndex((x) => x.index == index);
     }
 });
-window.electronAPI.handleSaveSetting((event, data) => {
-    window.electronAPI.dataSet({key: 'settings',value: { shuffle: shuffle, mute: mute, volume: slider } })
+eAPI.handleSaveSetting((event, data) => {
+    eAPI.dataSet({key: 'settings',value: { shuffle: shuffle, mute: mute, volume: slider } })
+    eAPI.handleClosed();
 })
 
 
-window.electronAPI.handleSelectedFiles((event, arg) => {    
-    scanDir(arg);
-});
 
+eAPI.handleSelectedFiles((event, arg) => {    
+    console.log(arg)
+    startPlayer(arg);
+});
+eAPI.handlePlaylistAdd((event, path) => {   
+ 
+    addSongToPlaylist(path)
+});
+eAPI.handlePlaylistRemove((event, path) => {    
+    removeSongFromPlaylist(path)
+});
 async function addSongToPlaylist(path) {
     if (player) {
-        const metadata = await mm.parseFile(path, { skipCovers: true });
-        const stats = fs.statSync(audioFile);
+        const metadata = await eAPI.mmParseFile(path, { skipCovers: true });
+        const stats = eAPI.fsStatSync(path);
         var data = {};
         var title = metadata.common.title;
         var artist = metadata.common.artist;
@@ -322,13 +268,11 @@ async function startPlayer(arg) {
         });
     }
 
-    watcher
-        .on('add', (path) => addSongToPlaylist(path))
-        .on('unlink', (path) => removeSongFromPlaylist(path));
 
-    const lastPlayed = await window.electronAPI.dataGet('last-played')
 
-    if (lastPlayed.type === 'ok') {
+    const lastPlayed = await eAPI.dataGet('last-played')
+    console.log(lastPlayed)
+    if (lastPlayed !== undefined && lastPlayed.type === 'ok') {
         var index = arg.files.indexOf(lastPlayed.data.path);
 
         if (index != -1) {
@@ -338,7 +282,7 @@ async function startPlayer(arg) {
         }
 
         getTags(player.playlist[player.index].file);
-    } else if (lastPlayed.type === 'unsaved') {
+    } else if (lastPlayed !== undefined && lastPlayed.type === 'unsaved') {
         player = new Player(songArr, 0);
         getTags(player.playlist[player.index].file);
     }
@@ -348,15 +292,14 @@ async function startPlayer(arg) {
 
 function getTags(audioFile) {
     var titles = [];
-    const metadata = mm
-        .parseFile(audioFile, { skipCovers: false })
+    const metadata = eAPI.mmParseFile(audioFile, { skipCovers: false })
         .then((metadata) => {
             var title = metadata.common.title;
             var artist = metadata.common.artist;
             var album = metadata.common.album;
 
             if (title) trackName = title;
-            else trackName = audioFile.split(path.sep).slice(-1)[0];
+            else trackName = audioFile.split(eAPI.pathSep()).slice(-1)[0];
             if (artist) trackArtist = artist;
             else trackArtist = '';
             if (album) trackAlbum = album;
@@ -440,17 +383,9 @@ var playMusic = function () {
 };
 
 var toggleShuffle = function () {
-    if (shuffle) {
-        shuffle = false;
-    } else {
-        shuffle = true;
-    }
+    shuffle = !shuffle;
+    eAPI.dataSet({key: 'settings',value:  { shuffle: shuffle, volume: slider } })
 
-    window.electronAPI.handleSaveSetting((event, data) => {
-    
-        window.electronAPI.dataSet({key: 'settings',value:  { shuffle: shuffle, volume: slider } })
-    
-    })
 
 };
 
@@ -462,11 +397,8 @@ var togglemute = function () {
         mute = true;
         player.volume(0);
     }
-    window.electronAPI.handleSaveSetting((event, data) => {
-    
-        window.electronAPI.dataSet({key: 'settings',value:   { shuffle: shuffle, volume: slider } })
+    eAPI.dataSet({key: 'settings',value:   { mute: mute, volume: slider } })
 
-    })
     
 };
 
@@ -516,7 +448,7 @@ Player.prototype = {
             });
         }
     
-        window.electronAPI.dataSet({key: 'last-played',value: { path: data.file } })
+        eAPI.dataSet({key: 'last-played',value: { path: data.file } })
 
         sound.play();
         getTags(data.file);
@@ -656,10 +588,10 @@ $: if (player) {
     mute = false;
 }
 </script>
-<style global lang="postcss">
-    @tailwind base;
-    @tailwind components;
-    @tailwind utilities;
+<style global>
+	@tailwind base;
+	@tailwind components;
+	@tailwind utilities;
 
     .progress .progress-bar {
     -webkit-transition: none;
@@ -673,12 +605,12 @@ $: if (player) {
         if (!playListVisible) handleKeyboardPress(e.key);
     }} />
 
-<main class="grid grid-cols-2 py-3 px-3 w-100">
+<main class="grid grid-cols-2 py-3 px-3 w-full h-full">
   
         {#if playListVisible}
           
         {/if}
-        <section class="col-5 my-auto">
+        <section class="w-full">
             {#if loading}
                 <div
                     class="spinner-border text-danger centerBlock"
@@ -686,13 +618,14 @@ $: if (player) {
                     role="status">
                     <span class="sr-only">Loading...</span>
                 </div>
-            {:else}  <Playlist
+            {:else} 
+             <Playlist
             {player}
             on:changeSong={(event) => playPlaylistSong(event.detail.index)} />{/if}
             </section>
 
-        <section class="">
-            <div class="">
+        <section class="flex justify-center items-center">
+            <div class="h-full flex flex-col py-8 justify-between">
                 <div class="col-md-12 text-center">
                     <TrackDetails
                         {trackName}
@@ -701,33 +634,34 @@ $: if (player) {
                         {theme} />
                         {test}
                 </div>
-
-                <div class="col-md-12 text-center">
-                    <PLaybackControls
-                        on:prevSong={prevSong}
-                        on:nextSong={nextSong}
-                        on:playMusic={playMusic}
-                        {songPlaying} />
-                </div>
-
-                <div class="col-md-12 text-center">
-                    <div id="timer">{timer}</div>
-                    <div id="duration">{duration}</div><br />
-
-                    <div
-                        class="progress"
-                        id="seek"
-                        bind:clientWidth={offsetWidth}
-                        on:click={(e) => seekToTime(e)}>
+                <div>
+                    <div class="col-md-12 text-center">
+                        <PLaybackControls
+                            on:prevSong={prevSong}
+                            on:nextSong={nextSong}
+                            on:playMusic={playMusic}
+                            {songPlaying} />
+                    </div>
+    
+                    <div class="col-md-12 text-center">
+                        <div id="timer">{timer}</div>
+                        <div id="duration">{duration}</div><br />
+    
                         <div
-                            class="progress-bar bg-danger"
-                            role="progressbar"
-                            id="progress"
-                            aria-valuemin="0"
-                            aria-valuemax="100" />
+                            class="progress"
+                            id="seek"
+                            bind:clientWidth={offsetWidth}
+                            on:click={(e) => seekToTime(e)}>
+                            <div
+                                class="progress-bar bg-danger"
+                                role="progressbar"
+                                id="progress"
+                                aria-valuemin="0"
+                                aria-valuemax="100" />
+                        </div>
                     </div>
                 </div>
-                <br />
+               
                 <div class="col-md-12" id="outerCtrl">
                     <Settings
                         on:showPlaylist={showPlaylist}

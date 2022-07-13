@@ -22,25 +22,27 @@ function changeSong(number) {
 }
 </script>
 
-<input
+<!-- <input
     class="form-control"
     id="search"
     type="search"
     bind:value={search}
     placeholder="Search"
-    aria-label="Search" />
-<div id="playlist" class="list-group style-3">
-    {#each list as song, index (song)}
+    aria-label="Search" /> -->
+<div id="playlist" class="flex flex-col gap-y-3 w-full px-4 py-4 bg-slate-800 rounded-xl h-full">
+    <h1 class="font-bold text-xl">Playlist</h1>
+    {#each list as song, index (song.index)}
         <!-- svelte-ignore a11y-invalid-attribute -->
-        <a
-            href="javascript:;"
-            class="list-group-item list-group-item-action list"
-            on:click={changeSong(song.index)}>
-            <h6>
-                {song.name}
-                •
-                <small class="text-muted">{song.artist}</small>
-            </h6>
-        </a>
+        <button
+            
+            class="w-full cursor-pointer text-white  py-2 px-3 text-start bg-slate-700 rounded-lg hover:bg-slate-600"
+            on:click={changeSong(song.index)}
+            >
+            
+               <span class="font-md truncate "> {song.name}</span>
+                
+                <small class="text-sm">{song.artist}</small>
+           
+        </button>
     {/each}
 </div>

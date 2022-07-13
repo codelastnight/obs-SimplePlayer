@@ -13,13 +13,15 @@ const fs = require('fs');
 const openAboutWindow = require('about-window').default;
 const isDev = require('electron-is-dev');
 const storage = require('electron-storage');
-//storage.setDataPath();
+const mm = require('music-metadata');
+const chokidar = require('chokidar');
 
 // launch extra express server
 const { fork } = require('child_process')
 const ps = fork(`${__dirname}/server.js`)
 
 let status = 0;
+let watcher;
 
 if (isDev) {
     require('electron-reload')(__dirname, {
@@ -249,7 +251,8 @@ function createWindow() {
         storage.isPathExists(data.key, function (isDoes) {
             if (isDoes) {
                 storage.get(key, function (error, combinedata) {
-                    if (!error)   combine = combinedata
+                    if (error)   throw (error)
+                    else combine = combinedata
                 });
             }
         });
@@ -262,21 +265,25 @@ function createWindow() {
         );
         return true
     })
-    ipcMain.handle('data:get', (e,key) => {
+    ipcMain.handle('data:get', async (e,key) => {
         storage.isPathExists(key, function (isDoes) {
             if (isDoes) {
                 storage.get(key, function (error, data) {
+
                     if (error)   return {type: 'error', data: null}
                     else  return {type: 'ok', data: data}
                 });
-            } else {
-                return  {type: 'unsaved', data: null}
-            }
+            } 
+            
+            
         });
+        return {type: 'unsaved', data: null}
     });
     // Open the DevTools.
     if (isDev) win.webContents.openDevTools();
-
+    ipcMain.on('scanDir', (e,path) => {
+        scanDir(path);
+    });
     win.on('close', (e) => {
         if (status == 0) {
             if (win) {
@@ -301,7 +308,7 @@ ipcMain.on('closed', () => {
 });
 
 
-app.on('ready', () => {
+app.whenReady().then( () => {
     createWindow();
 });
 
@@ -318,8 +325,8 @@ app.on('activate', () => {
     }
 });
 
-function openFolderDialog() {
-    dialog.showOpenDialog(win, { properties: ['openDirectory'] }).then(
+async function openFolderDialog() {
+    await dialog.showOpenDialog(win, { properties: ['openDirectory'] }).then(
         (result) => {
             const filePath = result.filePaths[0];
             if (filePath) {
@@ -335,6 +342,8 @@ function openFolderDialog() {
         }
     );
 }
+
+
 
 var walkSync = function (dir, filelist) {
     files = fs.readdirSync(dir);
@@ -358,11 +367,51 @@ var walkSync = function (dir, filelist) {
     });
     return filelist;
 };
+async function parseFiles(audioFiles) {
+    var titles = [];
 
-function scanDir(filePath) {
+   // loading = true;
+
+    for (const audioFile of audioFiles) {
+        // await will ensure the metadata parsing is completed before we move on to the next file
+        const metadata = await mm.parseFile(audioFile, { skipCovers: true });
+        const stats = fs.statSync(audioFile);
+        var data = {};
+        var title = metadata.common.title;
+        var artist = metadata.common.artist;
+        if (title) data.title = metadata.common.title;
+        else data.title = audioFile.split(path.sep).slice(-1)[0];
+        if (artist) data.artist = metadata.common.artist;
+        else data.artist = '';
+        data.modDate = stats.mtime;
+
+        titles.push(data);
+    }
+    //loading = false;
+
+    return titles;
+}
+async function scanDir(filePath) {
     if (!filePath || filePath[0] == 'undefined') return;
+    watcher = chokidar.watch(filePath, {
+        ignored: /[\/\\]\./,
+        persistent: true
+    });
 
-    win.webContents.send('selected-files', filePath);
+    var arr = walkSync(filePath);
+    var arg = {};
+    var names = await parseFiles(arr);
+
+    arg.files = arr;
+    arg.path = filePath;
+    arg.names = names;
+
+    win.webContents.send('selected-files', arg);
+    
+    watcher
+        .on('add', (path) => win.webContents.send('playlist:add', path))
+        .on('unlink', (path) => win.webContents.send('playlist:remove', path));
+
 }
 
 function createMenuOther(openFolder, theme, info, sort) {

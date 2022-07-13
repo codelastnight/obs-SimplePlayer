@@ -6,10 +6,5 @@ module.exports = {
   },
   plugins: [
   ],
-  purge: {
-    content: [
-     "./src/App.svelte",
-    ],
-    enabled: production // disable purge in dev
-  },
+  content: ['./src/**/*.{html,js,svelte,ts}'],
 };
