@@ -65,19 +65,20 @@ body{
 
 /* Track */
 ::-webkit-scrollbar-track {
-    box-shadow: inset 0 0 5px grey; 
+    /* box-shadow: inset 0 0 5px grey;  */
+    border: 1px solid #535353;
     border-radius: 5px;
 }
  
 /* Handle */
 ::-webkit-scrollbar-thumb {
-    background: #FF3333; 
+    background: #60b458; 
     border-radius: 5px;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-    background: rgb(207, 42, 42); 
+    background: rgb(65, 189, 137); 
 }
 
 .slider {

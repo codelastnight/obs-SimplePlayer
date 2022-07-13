@@ -608,7 +608,7 @@ $: if (player) {
 <main class="grid grid-cols-2 py-3 px-3 w-full h-full">
   
     
-        <section class="w-full">
+        <section class="w-full overflow-y-scroll pr-[10px]">
             {#if loading}
                 <div
                     class="spinner-border text-danger centerBlock"

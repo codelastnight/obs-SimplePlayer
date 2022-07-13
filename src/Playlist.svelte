@@ -29,8 +29,11 @@ function changeSong(number) {
     bind:value={search}
     placeholder="Search"
     aria-label="Search" /> -->
-<div id="playlist" class="flex flex-col  w-full py-4 divide-y divide-slate-500 bg-slate-700 rounded-xl h-min-100 h-100">
-    <h1 class="font-bold text-xl py-3 px-4">Playlist</h1>
+<div id="playlist" class="flex flex-col  w-full py-4  divide-y divide-slate-500 bg-slate-700 rounded-2xl h-min-100 h-100 ">
+    <div class="flex justify-between items-center px-4  py-2">
+        <h1 class="font-bold text-xl ">Playlist</h1>
+        <button class="bg-slate-800 hover:bg-slate-900 rounded-full py-2 px-4" on:click={()=> window.electronAPI.openDir()}>Open folder</button>
+    </div>
     {#each list as song, index  (song.index)}
         <!-- svelte-ignore a11y-invalid-attribute -->
         <button

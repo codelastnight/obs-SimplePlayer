@@ -8,7 +8,6 @@ const {
 const { autoUpdater } = require("electron-updater")
 
 const path = require('path');
-const url = require('url');
 const fs = require('fs');
 const openAboutWindow = require('about-window').default;
 const isDev = require('electron-is-dev');
@@ -245,7 +244,9 @@ function createWindow() {
     //         slashes: true
     //     })
     // );
-
+    ipcMain.on('openDir', (e) => {
+        openFolderDialog()
+    })
     ipcMain.on('data:set', (e,data) => {
         let combine = {}
         storage.isPathExists(data.key, function (isDoes) {

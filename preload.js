@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     handlePlaylistRemove: (callback) => ipcRenderer.on( 'playlist:remove', callback),
     handleClosed: () => ipcRenderer.send( 'closed'),
     handleScanDir: (path) => ipcRenderer.send( 'scanDir', path),
+    openDir: () => ipcRenderer.send( 'openDir'),
 
     fsStatSync: (path) => fs.statSync(path),
     mmParseFile: (filePath, options) => mm.parseFile(filePath,options),
