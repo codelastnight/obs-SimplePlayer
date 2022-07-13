@@ -12,13 +12,13 @@ const url = require('url');
 const fs = require('fs');
 const openAboutWindow = require('about-window').default;
 const isDev = require('electron-is-dev');
-const storage = require('electron-json-storage');
+const storage = require('electron-storage');
+//storage.setDataPath();
 
 // launch extra express server
 const { fork } = require('child_process')
 const ps = fork(`${__dirname}/server.js`)
 
-storage.getDataPath();
 let status = 0;
 
 if (isDev) {
@@ -193,8 +193,11 @@ function createWindow() {
         icon: __dirname + '/dusk.png',
         webPreferences: {
             nodeIntegration: true,
+            nodeIntegrationInWorker: true,
+            preload: path.join(__dirname, 'preload.js'),
             enableRemoteModule: true,
-            backgroundThrottling: false
+            backgroundThrottling: false,
+            webviewTag: true
         }
     });
 
@@ -212,33 +215,65 @@ function createWindow() {
     var theme = { light, dark, disco };
     var sort = { order: { asc, dec }, by: { songName, artistName, dateAdded } };
 
-    storage.has('theme', function (error, hasKey) {
-        if (error) throw error;
-        if (hasKey) {
-            storage.get('theme', function (error, data) {
-                if (error) throw error;
+    // storage.isPathExists('theme', function (hasKey) {
+    //     if (hasKey) {
+    //         storage.get('theme', function (error, data) {
+    //             if (error) throw error;
 
-                if (data.theme == 'light') theme.light = true;
-                else if (data.theme == 'disco') theme.disco = true;
-                else theme.dark = true;
+    //             if (data.theme == 'light') theme.light = true;
+    //             else if (data.theme == 'disco') theme.disco = true;
+    //             else theme.dark = true;
 
-                createMenu(theme, sort);
-            });
-        } else {
-            dark = true;
-            createMenu(theme, sort);
-        }
-    });
-
+    //             createMenu(theme, sort);
+    //         });
+    //     } else {
+    //         dark = true;
+    //         createMenu(theme, sort);
+    //     }
+    // });
+    dark = true;
+    createMenu(theme, sort);
     // and load the index.html of the app.
-    win.loadURL(
-        url.format({
-            pathname: path.join(__dirname, 'public/index.html'),
-            protocol: 'file:',
-            slashes: true
-        })
-    );
+    win.loadFile( path.join(__dirname, 'public/index.html'))
 
+    // win.loadURL(
+    //     url.format({
+    //         pathname:,
+    //         protocol: 'file:',
+    //         slashes: true
+    //     })
+    // );
+
+    ipcMain.on('data:set', (e,data) => {
+        let combine = {}
+        storage.isPathExists(data.key, function (isDoes) {
+            if (isDoes) {
+                storage.get(key, function (error, combinedata) {
+                    if (!error)   combine = combinedata
+                });
+            }
+        });
+        storage.set(
+            data.key,
+            {...combine, ...data.value},
+            function (error) {
+                if (error) return false;
+            }
+        );
+        return true
+    })
+    ipcMain.handle('data:get', (e,key) => {
+        storage.isPathExists(key, function (isDoes) {
+            if (isDoes) {
+                storage.get(key, function (error, data) {
+                    if (error)   return {type: 'error', data: null}
+                    else  return {type: 'ok', data: data}
+                });
+            } else {
+                return  {type: 'unsaved', data: null}
+            }
+        });
+    });
     // Open the DevTools.
     if (isDev) win.webContents.openDevTools();
 
@@ -264,6 +299,7 @@ ipcMain.on('closed', () => {
         app.quit();
     }
 });
+
 
 app.on('ready', () => {
     createWindow();

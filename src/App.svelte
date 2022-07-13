@@ -4,14 +4,13 @@ import TrackDetails from './TrackDetails.svelte';
 import PLaybackControls from './PlaybackControls.svelte';
 import Settings from './Settings.svelte';
 import {io} from 'socket.io-client';
- 
+ import {onMount} from 'svelte'
+ import * as mm from 'music-metadata';
 const socket = io('http://localhost:9990');
 
-const ipc = require('electron').ipcRenderer;
 const fs = require('fs');
-const path = require('path');
-const storage = require('electron-json-storage');
-const mm = require('music-metadata');
+//const path = require('path');
+//const mm = require('music-metadata');
 const chokidar = require('chokidar');
 let test = '';
 let watcher;
@@ -24,7 +23,6 @@ socket.on('whouare', function(msg) {
     test = msg
 })
 
-storage.getDataPath();
 
 let trackName = '';
 let trackArtist = '';
@@ -47,32 +45,37 @@ let shuffle = false;
 let mute = false;
 let slider = 100;
 
+
+
+onMount(()=> {
+    async function checkSettings()  {
+        const settings = await window.electronAPI.dataGet('settings')
+        const getpath = await window.electronAPI.dataGet('path')
+        const theme = await window.electronAPI.dataGet('theme')
+
+        if (settings.type === 'ok') {
+            if (settings.data.shuffle) shuffle = true;
+            if (settings.data.volume) slider = settings.data.volume;
+        }
+        if (theme.type === 'ok') {
+            setTheme(theme.data);
+
+        }
+        if (getpath.type === 'ok') {
+            scanDir(getpath.data.path.toString());
+
+        }
+    }
+
+    checkSettings();
+
+})
 socket.on('ask4update', function(msg) {
     if (msg === 'pls') {
         socket.emit('update', {track: trackName})
     }
 })
 
-storage.has('settings', function (error, hasKey) {
-    if (error) throw error;
-    if (hasKey) {
-        storage.get('settings', function (error, data) {
-            if (error) throw error;
-            if (data.shuffle) shuffle = true;
-            if (data.volume) slider = data.volume;
-        });
-    }
-});
-
-storage.has('path', function (error, hasKey) {
-    if (error) throw error;
-    if (hasKey) {
-        storage.get('path', function (error, data) {
-            if (error) throw error;
-            scanDir(data.path.toString());
-        });
-    }
-});
 
 function setTheme(data) {
     var icons = document.body.querySelectorAll('svg');
@@ -100,15 +103,6 @@ function setTheme(data) {
     }
 }
 
-storage.has('theme', function (error, hasKey) {
-    if (error) throw error;
-    if (hasKey) {
-        storage.get('theme', function (error, data) {
-            if (error) throw error;
-            setTheme(data);
-        });
-    }
-});
 
 var walkSync = function (dir, filelist) {
     files = fs.readdirSync(dir);
@@ -174,17 +168,17 @@ async function scanDir(filePath) {
     arg.path = filePath;
     arg.names = names;
 
-    startPlayer(arg);
+    await startPlayer(arg);
 }
 
 function themeChange(data) {
     setTheme(data);
 }
 
-ipc.on('theme-change', function (event, arg) {
-    themeChange(arg);
-});
 
+window.electronAPI.handleThemeChange((event, arg) => {
+    themeChange(arg);
+})
 function sortByTitle(arr, des = false) {
     arr.sort((a, b) => {
         let fa, fb;
@@ -235,7 +229,7 @@ function sortDefault(arr, des = false) {
     return arr;
 }
 
-ipc.on('sort-change', function (event, arg) {
+window.electronAPI.handleThemeChange((event, arg) => {
     if (player) {
         var index = player.playlist[player.index].index;
 
@@ -260,18 +254,12 @@ ipc.on('sort-change', function (event, arg) {
         player.index = player.playlist.findIndex((x) => x.index == index);
     }
 });
+window.electronAPI.handleSaveSetting((event, data) => {
+    window.electronAPI.dataSet({key: 'settings',value: { shuffle: shuffle, mute: mute, volume: slider } })
+})
 
-ipc.on('save-settings', function (event, arg) {
-    storage.set(
-        'settings',
-        { shuffle: shuffle, mute: mute, volume: slider },
-        function (error) {
-            ipc.send('closed');
-        }
-    );
-});
 
-ipc.on('selected-files', function (event, arg) {
+window.electronAPI.handleSelectedFiles((event, arg) => {    
     scanDir(arg);
 });
 
@@ -314,7 +302,7 @@ function removeSongFromPlaylist(path) {
     }
 }
 
-function startPlayer(arg) {
+async function startPlayer(arg) {
     if (songPlaying) {
         player.pause();
         songPlaying = false;
@@ -338,26 +326,24 @@ function startPlayer(arg) {
         .on('add', (path) => addSongToPlaylist(path))
         .on('unlink', (path) => removeSongFromPlaylist(path));
 
-    storage.has('last-played', function (error, hasKey) {
-        if (error) throw error;
-        if (hasKey) {
-            storage.get('last-played', function (error, data) {
-                if (error) throw error;
-                var index = arg.files.indexOf(data.path);
+    const lastPlayed = await window.electronAPI.dataGet('last-played')
 
-                if (index != -1) {
-                    player = new Player(songArr, index);
-                } else {
-                    player = new Player(songArr, 0);
-                }
+    if (lastPlayed.type === 'ok') {
+        var index = arg.files.indexOf(lastPlayed.data.path);
 
-                getTags(player.playlist[player.index].file);
-            });
+        if (index != -1) {
+            player = new Player(songArr, index);
         } else {
             player = new Player(songArr, 0);
-            getTags(player.playlist[player.index].file);
         }
-    });
+
+        getTags(player.playlist[player.index].file);
+    } else if (lastPlayed.type === 'unsaved') {
+        player = new Player(songArr, 0);
+        getTags(player.playlist[player.index].file);
+    }
+
+   
 }
 
 function getTags(audioFile) {
@@ -459,13 +445,13 @@ var toggleShuffle = function () {
     } else {
         shuffle = true;
     }
-    storage.set(
-        'settings',
-        { shuffle: shuffle, volume: slider },
-        function (error) {
-            if (error) throw error;
-        }
-    );
+
+    window.electronAPI.handleSaveSetting((event, data) => {
+    
+        window.electronAPI.dataSet({key: 'settings',value:  { shuffle: shuffle, volume: slider } })
+    
+    })
+
 };
 
 var togglemute = function () {
@@ -476,13 +462,12 @@ var togglemute = function () {
         mute = true;
         player.volume(0);
     }
-    storage.set(
-        'settings',
-        { shuffle: shuffle, volume: slider },
-        function (error) {
-            if (error) throw error;
-        }
-    );
+    window.electronAPI.handleSaveSetting((event, data) => {
+    
+        window.electronAPI.dataSet({key: 'settings',value:   { shuffle: shuffle, volume: slider } })
+
+    })
+    
 };
 
 function randomize(array) {
@@ -530,10 +515,9 @@ Player.prototype = {
                 }
             });
         }
+    
+        window.electronAPI.dataSet({key: 'last-played',value: { path: data.file } })
 
-        storage.set('last-played', { path: data.file }, function (error) {
-            if (error) throw error;
-        });
         sound.play();
         getTags(data.file);
 
