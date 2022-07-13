@@ -22,7 +22,7 @@
                 top:7px;
             }
             .tooltip  {
-                max-width: 25rem;
+                max-width: 20rem;
                 white-space: initial;
                 background-color: #FFF8C0;
                 border: 1px solid black;
@@ -50,12 +50,15 @@
                 font-size: 0.8rem;
             }
         </style>
-        <div class="tooltip" id="tooltip" onclick="playCroak()" onkeydown="playCroak()">
-            <div class="tooltip__header">                     
-                <p id="title" class="">Loading...</p> <p class="exit" aria-hidden="true" >x</p>
-            </div>                   
-            <p id="content">Loading...</p>
-       </div>
+        <div style="position: relative">
+            <div class="tooltip" id="tooltip" onclick="playCroak()" onkeydown="playCroak()">
+                <div class="tooltip__header">                     
+                    <p id="title" class="">Loading...</p> <p class="exit" aria-hidden="true" >x</p>
+                </div>                   
+                <p id="content">Loading...</p>
+           </div>
+        </div>
+      
         <script src="/socket.io/socket.io.js"></script>
         <script>
             var socket = io();
