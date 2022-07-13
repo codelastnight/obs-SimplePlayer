@@ -4,7 +4,8 @@
 ## how 2 use
 1. launch exe (from releases page)
 2. allow network access
-3. in OSB, add a new Browser Source, copy the url as `localhost:9990`
+3. in OSB, add a new Browser Source, set the url as `localhost:9990`
+
 
 
 Built on top of Aveek Saha's [Dusk Player](https://github.com/Aveek-Saha/MusicPlayer/releases)

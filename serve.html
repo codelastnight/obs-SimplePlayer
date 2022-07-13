@@ -22,10 +22,10 @@
                 top:7px;
             }
             .tooltip  {
-                max-width: 20rem;
+                width: 20rem;
                 white-space: initial;
                 background-color: #FFF8C0;
-                border: 1px solid black;
+                border: 1.5px solid black;
                 color: #000;
                 border-radius: 3px;
                 padding: 0.25rem;
@@ -47,23 +47,46 @@
                 margin: 0;
             }
             .exit {
-                font-size: 0.8rem;
+                font-size: 0.8em;
+            }
+            .hide {
+                visibility: hidden;
+            }
+            .floating { 
+                animation-name: floating;
+                animation-duration: 2s;
+                animation-iteration-count: infinite;
+                animation-timing-function: ease-in-out;
+            }
+            @keyframes floating {
+                0% { transform: translate(0,  0px); }
+                49% { transform: translate(0,  0px); }
+
+                50%  { transform: translate(0, 3px); }
+                99%  { transform: translate(0, 3px); }
+
+                100%   { transform: translate(0, -0px); }   
             }
         </style>
-        <div style="position: relative">
+        <div id="box" class="floating" style="position: relative">
             <div class="tooltip" id="tooltip" onclick="playCroak()" onkeydown="playCroak()">
                 <div class="tooltip__header">                     
                     <p id="title" class="">Loading...</p> <p class="exit" aria-hidden="true" >x</p>
                 </div>                   
                 <p id="content">Loading...</p>
+                <p id="artist" style="font-style: italic;">Loading...</p>
+
            </div>
         </div>
       
         <script src="/socket.io/socket.io.js"></script>
         <script>
             var socket = io();
+            var box =   document.getElementById('box')
             var title = document.getElementById('title')
             var content = document.getElementById('content')
+            var artist =   document.getElementById('artist')
+            var tooltip =   document.getElementById('tooltip')
 
             socket.on('onload', function(msg) {
                 socket.emit('whoiam','reciever')
@@ -73,8 +96,26 @@
                 socket.emit('ask4update', 'pls')
             })
             socket.on('update', function(msg) {
-                title.innerText = 'Current DJ'
+                console.log(msg)
+                if(msg.animate) box.classList.add('floating')
+                else box.classList.remove('floating')
+                if(msg.showtrack) content.classList.remove('hide')
+                else content.classList.add('hide')
+                if(msg.showartist) artist.classList.remove('hide')
+                else artist.classList.add('hide')
+                tooltip.style.width = msg.width != null && msg.width != undefined ? `${msg.width}rem` : "20rem";
+
+                box.style.fontSize = msg.fontSize != null && msg.fontSize != undefined ? `${msg.fontSize}` : "16";
+                title.innerText = msg.title
                 content.innerText = msg.track
+                artist.innerText = msg.artist
+
+            })
+            socket.on('disconnect', function() {
+                title.innerText = 'disconnected'
+                content.innerText = 'try refreshing browser source or app?'
+
+
             })
 
           </script>

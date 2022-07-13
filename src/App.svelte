@@ -21,6 +21,10 @@ socket.on('onload', function(msg) {
 socket.on('whouare', function(msg) {
     test = msg
 })
+socket.on('disconnect', function() {
+    test = 'uh oh ur disconnected. restart?'
+
+})
 
 
 let trackName = '';
@@ -44,6 +48,14 @@ let shuffle = false;
 let mute = false;
 let slider = 100;
 
+let obsTitle = 'Current DJ'
+
+let doanimate = true;
+let showtrackartist = false;
+let showtrack = true;
+$: replaceTrack = trackName
+let fontSize = 16
+let width = 20
 
 
 onMount(()=> {
@@ -69,11 +81,33 @@ onMount(()=> {
     checkSettings();
 
 })
+
+
 socket.on('ask4update', function(msg) {
     if (msg === 'pls') {
-        socket.emit('update', {track: trackName})
+        updateOBS()
     }
 })
+
+
+function updateOBS() {
+    
+    socket.emit('update',{
+    track: replaceTrack,
+    artist: trackArtist,
+    title: obsTitle,
+    animate: doanimate,
+    showtrack: showtrack,
+    showartist: showtrackartist,
+    fontSize: fontSize,
+    width: width
+    }
+    )
+}
+
+function resetTrackTitle() {
+    replaceTrack = trackName
+}
 
 
 function setTheme(data) {
@@ -305,7 +339,9 @@ function getTags(audioFile) {
             if (album) trackAlbum = album;
             else trackAlbum = '';
 
-            socket.emit('update', {track: trackName})
+            //reset
+            resetTrackTitle()
+            updateOBS()
             var img = document.getElementById('picture');
 
             if (metadata.common.picture) {
@@ -544,6 +580,7 @@ Player.prototype = {
     }
 };
 
+
 var volumnUp = function () {
     if (slider !== 100) {
         slider = slider + 2;
@@ -607,7 +644,57 @@ $: if (player) {
 
 <main class="grid grid-cols-2 py-3 px-3 w-full h-full">
   
-    
+        {#if playListVisible}
+        <section class="w-[600px] absolute p-4 top-0 right-0 z-50">
+            <div class="bg-slate-700 rounded-xl py-4 px-8 flex flex-col gap-y-2">
+                <div class="flex justify-between">   
+                    <h1 class="text-xl font-bold">OBS settings</h1>
+                    <button on:click={()=> {playListVisible = false}} class="py-1 px-2 bg-slate-800 hover:bg-slate-600 rounded-full">close</button>
+
+                </div>
+                
+                <label for="titletext">heading</label>
+                <input bind:value={obsTitle} on:input={updateOBS} class="bg-slate-600 px-4 py-1 rounded-full" id="titletext" type="text" />
+                <div class="flex gap-x-4">
+                    <div>
+                        <input bind:checked={doanimate} on:change={updateOBS} class="bg-slate-600 px-4 py-1 rounded-full" id="titletext" type="checkbox" />
+                        <label>animate</label>
+                        
+                    </div>
+                    <div>
+                        <input bind:checked={showtrackartist} on:change={updateOBS} class="bg-slate-600 px-4 py-1 rounded-full" id="titletext" type="checkbox" />
+                        <label>show track artist</label>
+                    </div>
+                    <div>
+                        <input bind:checked={showtrack} on:change={updateOBS} class="bg-slate-600 px-4 py-1 rounded-full" id="titletext" type="checkbox" />
+                        <label>show track name</label>
+                    </div>
+                </div>
+               
+                <label>custom track name (resets automatically)</label>
+                <div class='flex gap-x-2'>
+                    <input bind:value={replaceTrack} on:input={updateOBS} class="bg-slate-600 px-4 py-1 w-full rounded-full" id="titletext" type="text" />
+                    <button on:click={()=> {resetTrackTitle(); updateOBS()}} class="py-2 px-4 bg-slate-800 hover:bg-slate-600 rounded-full">reset</button>
+                </div>   
+                <label>
+                    fontsize
+                    <input class="bg-slate-500 px-2 py-1" type=number on:change={updateOBS} bind:value={fontSize} min=6 max=50>
+                    <input type=range bind:value={fontSize} on:input={updateOBS} min=6 max=50>
+                    <button on:click={()=> {fontSize = 16; updateOBS()}} class="py-1 px-2 bg-slate-800 hover:bg-slate-600 rounded-full">reset</button>
+
+                </label>
+                <label>
+                     box width
+                    <input class="bg-slate-500 px-2 py-1" type=number on:change={updateOBS} bind:value={width} min=6 max=80>
+                    <input type=range bind:value={width} on:input={updateOBS} min=6 max=80>
+                    <button on:click={()=> {width = 20; updateOBS()}} class="py-1 px-2 bg-slate-800 hover:bg-slate-600 rounded-full">reset</button>
+
+                </label>             
+                <button on:click={updateOBS} class="py-1 px-4 bg-slate-800 hover:bg-emerald-600 rounded-full">force update obs</button>
+
+            </div>
+        </section>
+        {/if}
         <section class="w-full overflow-y-scroll pr-[10px]">
             {#if loading}
                 <div
