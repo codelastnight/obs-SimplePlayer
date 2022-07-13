@@ -85,6 +85,7 @@
     "tailwindcss": "^3.1.6"
   },
   "dependencies": {
+    "@rollup/plugin-image": "^2.1.1",
     "about-window": "^1.15.2",
     "chokidar": "^3.5.1",
     "electron-is-dev": "^1.2.0",

@@ -29,13 +29,13 @@ function changeSong(number) {
     bind:value={search}
     placeholder="Search"
     aria-label="Search" /> -->
-<div id="playlist" class="flex flex-col gap-y-3 w-full px-4 py-4 bg-slate-800 rounded-xl h-full">
-    <h1 class="font-bold text-xl">Playlist</h1>
-    {#each list as song, index (song.index)}
+<div id="playlist" class="flex flex-col  w-full py-4 divide-y divide-slate-500 bg-slate-700 rounded-xl h-min-100 h-100">
+    <h1 class="font-bold text-xl py-3 px-4">Playlist</h1>
+    {#each list as song, index  (song.index)}
         <!-- svelte-ignore a11y-invalid-attribute -->
         <button
             
-            class="w-full cursor-pointer text-white  py-2 px-3 text-start bg-slate-700 rounded-lg hover:bg-slate-600"
+            class="w-full cursor-pointer text-white  py-4 px-4 text-start hover:bg-slate-600"
             on:click={changeSong(song.index)}
             >
             

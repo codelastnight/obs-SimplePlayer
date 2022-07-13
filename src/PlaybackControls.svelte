@@ -1,6 +1,8 @@
 <script>
 import { createEventDispatcher } from 'svelte';
 export let songPlaying;
+import frogPlay from './static/play.png'
+import frogPause from './static/pause.png'
 
 const dispatch = createEventDispatcher();
 
@@ -17,7 +19,7 @@ function nextSong() {
 }
 </script>
 
-<div class="btn-group" role="group">
+<div class="flex items-center gap-x-4 justify-center" role="group">
     <button
         type="button"
         id="prevBtn"
@@ -33,7 +35,7 @@ function nextSong() {
             class="btn btn-primary-outline btn-lg"
             on:focus={(e) => e.target.blur()}
             on:click={playMusic}>
-            <i class="far fa-play-circle fa-4x fa-inverse" />
+            <img src={frogPlay} alt='play song' class="w-[8rem]" />
         </button>
     {:else}
         <button
@@ -42,7 +44,7 @@ function nextSong() {
             class="btn btn-primary-outline btn-lg"
             on:focus={(e) => e.target.blur()}
             on:click={playMusic}>
-            <i class="far fa-pause-circle fa-4x fa-inverse" />
+            <img src={frogPause} alt='pause song' class="w-[8rem]" />
         </button>
     {/if}
     <button

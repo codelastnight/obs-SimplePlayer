@@ -23,11 +23,11 @@ function onNewSocketConnection(socket) {
     });
     socket.on('whoiam', (msg) => {
         if (msg === 'sender') {
-            io.to(socket.id).emit('whouare', `u are ${socket.id}, a sender`);
+            io.to(socket.id).emit('whouare', `things look good and running`);
             socket.join("senders");
 
         } else {
-            io.to(socket.id).emit('whouare', `u are ${socket.id}, a reciever`);
+            io.to(socket.id).emit('whouare', `things look good and running`);
             socket.join("recievers");
         }
 

@@ -20,38 +20,38 @@ function togglemute() {
 }
 </script>
 
-<div class="slidecontainer justify-content-start">
-    <i class="fas fa-volume-down" />
-    <i class="fas fa-volume-up" style="float: right" />
+<div class="slidecontainer flex gap-x-3 items-center">
+    {#if mute}
+    <button
+        type="button"
+        id="checkboxrn"
+        on:focus={(e) => e.target.blur()}
+        on:click={togglemute}
+        class="btn btn-primary-outline btn-lg justify-content-end">
+        <i class="fas fa-volume-off fa-lg fa-inverse" />
+    </button>
+{:else}
+    <button
+        type="button"
+        id="checkboxrn"
+        on:focus={(e) => e.target.blur()}
+        on:click={togglemute}
+        class="btn btn-primary-outline btn-lg justify-content-end">
+        <i class="fas fa-volume-up fa-lg fa-inverse" />
+    </button>
+{/if}
     <input
-        type="range"
-        min="0"
-        max="100"
-        class="slider"
-        bind:value={slider}
-        id="myRange" />
+    type="range"
+    min="0"
+    max="100"
+    class="slider"
+    bind:value={slider}
+    id="myRange" />
+  
 </div>
 
-<div class="btn-group float-right" role="group">
-    {#if mute}
-        <button
-            type="button"
-            id="checkboxrn"
-            on:focus={(e) => e.target.blur()}
-            on:click={togglemute}
-            class="btn btn-primary-outline btn-lg justify-content-end">
-            <i class="fas fa-volume-off fa-lg fa-inverse" />
-        </button>
-    {:else}
-        <button
-            type="button"
-            id="checkboxrn"
-            on:focus={(e) => e.target.blur()}
-            on:click={togglemute}
-            class="btn btn-primary-outline btn-lg justify-content-end">
-            <i class="fas fa-volume-up fa-lg fa-inverse" />
-        </button>
-    {/if}
+<div class="btn-group float-right flex gap-x-4 " role="group">
+   
 
     {#if shuffle}
         <button

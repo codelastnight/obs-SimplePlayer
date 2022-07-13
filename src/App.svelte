@@ -1,7 +1,7 @@
 <script>
 import Playlist from './Playlist.svelte';
 import TrackDetails from './TrackDetails.svelte';
-import PLaybackControls from './PlaybackControls.svelte';
+import PlaybackControls from './PlaybackControls.svelte';
 import Settings from './Settings.svelte';
 import {io} from 'socket.io-client';
  import {onMount} from 'svelte'
@@ -12,7 +12,7 @@ const eAPI = window.electronAPI
 //const path = require('path');
 //const mm = require('music-metadata');
 //const chokidar = require('chokidar');
-let test = '';
+let test = 'loading...';
 socket.on('onload', function(msg) {
         test = msg
 
@@ -607,9 +607,7 @@ $: if (player) {
 
 <main class="grid grid-cols-2 py-3 px-3 w-full h-full">
   
-        {#if playListVisible}
-          
-        {/if}
+    
         <section class="w-full">
             {#if loading}
                 <div
@@ -619,24 +617,26 @@ $: if (player) {
                     <span class="sr-only">Loading...</span>
                 </div>
             {:else} 
+            <p class="p-2">  {test}</p>
+          
+
              <Playlist
             {player}
             on:changeSong={(event) => playPlaylistSong(event.detail.index)} />{/if}
             </section>
 
         <section class="flex justify-center items-center">
-            <div class="h-full flex flex-col py-8 justify-between">
+            <div class="h-full flex flex-col py-8 px-4 justify-between min-w-full">
                 <div class="col-md-12 text-center">
                     <TrackDetails
                         {trackName}
                         {trackArtist}
                         {trackAlbum}
                         {theme} />
-                        {test}
                 </div>
                 <div>
                     <div class="col-md-12 text-center">
-                        <PLaybackControls
+                        <PlaybackControls
                             on:prevSong={prevSong}
                             on:nextSong={nextSong}
                             on:playMusic={playMusic}
@@ -648,12 +648,12 @@ $: if (player) {
                         <div id="duration">{duration}</div><br />
     
                         <div
-                            class="progress"
+                            class="progress bg-slate-500 overflow-hidden rounded-full"
                             id="seek"
                             bind:clientWidth={offsetWidth}
                             on:click={(e) => seekToTime(e)}>
                             <div
-                                class="progress-bar bg-danger"
+                                class="progress-bar bg-danger bg-emerald-300 h-full rounded-full"
                                 role="progressbar"
                                 id="progress"
                                 aria-valuemin="0"

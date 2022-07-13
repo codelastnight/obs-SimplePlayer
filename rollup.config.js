@@ -6,7 +6,7 @@ import { terser } from 'rollup-plugin-terser';
 import sveltePreprocess from "svelte-preprocess";
 import tailwindcss from "tailwindcss";
 import autoprefixer from "autoprefixer";
-
+import image from '@rollup/plugin-image';
 const production = !process.env.ROLLUP_WATCH;
 
 export default {
@@ -34,7 +34,7 @@ export default {
                 css.write('bundle.css');
             }
         }),
-
+        image(),
         // If you have external dependencies installed from
         // npm, you'll most likely need these plugins. In
         // some cases you'll need additional configuration -
