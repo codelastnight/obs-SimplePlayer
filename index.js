@@ -237,6 +237,21 @@ function createWindow() {
     // and load the index.html of the app.
     win.loadFile( path.join(__dirname, 'public/index.html'))
 
+    win.webContents.once('dom-ready', () => {
+        storage.isPathExists('path', function (isDoes) {
+            if (isDoes) {
+                storage.get('path', function (error, data) {
+                    if (error)   throw (error)
+                    else  {
+                        console.log(data)
+                        scanDir(data.path.toString())
+                    }
+
+                });
+            }
+        });
+        
+    });
     // win.loadURL(
     //     url.format({
     //         pathname:,

@@ -1,24 +1,77 @@
 <html>
     <body>
-        <h1 id="dub">love frogs </h1>
-        <ul id="list"></ul>
+        <style>
+            *{
+                box-sizing: border-box
+            }
+            body {
+                font-family: Arial, sans-serif;
+            }
+            .tooltip::before {
+                content:'';
+                display:block;
+                width:0;
+                height:0;
+                position:absolute;
+
+                border-top: 8px solid transparent;
+                border-bottom: 8px solid transparent;
+                border-right:8px solid black;
+                left:-8px;
+
+                top:7px;
+            }
+            .tooltip  {
+                max-width: 25rem;
+                white-space: initial;
+                background-color: #FFF8C0;
+                border: 1px solid black;
+                color: #000;
+                border-radius: 3px;
+                padding: 0.25rem;
+                /* Position the tooltip */
+                z-index: 1;
+               min-height: 3rem;
+                cursor: pointer;
+                }
+            .tooltip__header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+            }
+            #title {
+                font-weight: bold;
+                margin-bottom: 0.25rem;
+            }
+            p {
+                margin: 0;
+            }
+            .exit {
+                font-size: 0.8rem;
+            }
+        </style>
+        <div class="tooltip" id="tooltip" onclick="playCroak()" onkeydown="playCroak()">
+            <div class="tooltip__header">                     
+                <p id="title" class="">Loading...</p> <p class="exit" aria-hidden="true" >x</p>
+            </div>                   
+            <p id="content">Loading...</p>
+       </div>
         <script src="/socket.io/socket.io.js"></script>
         <script>
             var socket = io();
-            var div = document.getElementById('list')
-            var div2 = document.getElementById('dub')
+            var title = document.getElementById('title')
+            var content = document.getElementById('content')
 
             socket.on('onload', function(msg) {
-                div.innerText = msg
                 socket.emit('whoiam','reciever')
 
               });
             socket.on('whouare', function(msg) {
-                div.innerText = msg
                 socket.emit('ask4update', 'pls')
             })
             socket.on('update', function(msg) {
-                div2.innerText = msg.track
+                title.innerText = 'Current DJ'
+                content.innerText = msg.track
             })
 
           </script>
