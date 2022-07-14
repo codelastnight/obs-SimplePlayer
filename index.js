@@ -74,7 +74,7 @@ function createMenu(theme, sort) {
                 copyright: 'arts + crafts',
                 description: 'i love frogs!!!!',
                 license: 'MIT',
-                icon_path: path.join(__dirname, 'build/icon.png')
+                icon_path: path.join(__dirname, 'logo.png')
             });
         }
     };
@@ -171,8 +171,8 @@ function createMenu(theme, sort) {
                             product_name: 'OBS simple player :)',
                             homepage: 'https://github.com/codelastnight/obs-SimplePlayer',
                             copyright: 'arts + crafts',
-                            icon_path: path.join(__dirname, 'build/icon.png')
-                        });
+                            icon_path: path.join(__dirname, 'logo.png')
+                                                });
                     }
                 }
             ]

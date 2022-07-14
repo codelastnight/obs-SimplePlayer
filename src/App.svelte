@@ -385,19 +385,17 @@ var playPlaylistSong = function (index) {
 };
 var nextSong = function () {
     if (shuffle) {
-        player.skip('random-next');
+        songPlaying = player.skip('random-next');
     } else {
-        player.skip('next');
+        songPlaying =player.skip('noskip-next');
     }
-    songPlaying = true;
 };
 var prevSong = function () {
     if (shuffle) {
-        player.skip('random-prev');
+        songPlaying = player.skip('random-prev');
     } else {
-        player.skip('prev');
+        songPlaying = player.skip('noskip-prev');
     }
-    songPlaying = true;
 };
 
 var showPlaylist = function () {
@@ -521,7 +519,22 @@ Player.prototype = {
                 self.randomIndex = self.randomArray.length - 1;
             }
             index = self.randomArray[self.randomIndex];
-        } else {
+        }  else if (direction === 'noskip-prev') {
+            index = self.index - 1;
+            if (index < 0) {
+                index = 0;
+                self.pause()
+                return false;
+            }
+        }else if (direction === 'noskip-next') {
+            index = self.index + 1;
+            if (index >= self.playlist.length) {
+                index = self.playlist.length - 1;
+                self.pause()
+
+                return false;
+            }
+        }  else {
             index = self.index + 1;
             if (index >= self.playlist.length) {
                 index = 0;
@@ -529,6 +542,7 @@ Player.prototype = {
         }
 
         self.skipTo(this.playlist[index].index);
+        return true
     },
 
     skipTo: function (index) {
