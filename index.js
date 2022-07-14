@@ -15,6 +15,8 @@ const storage = require('electron-storage');
 const mm = require('music-metadata');
 const chokidar = require('chokidar');
 
+let files = null;
+
 // launch extra express server
 const { fork } = require('child_process')
 const ps = fork(`${__dirname}/server.js`)

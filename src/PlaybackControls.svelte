@@ -3,7 +3,8 @@ import { createEventDispatcher } from 'svelte';
 export let songPlaying;
 import frogPlay from './static/play.png'
 import frogPause from './static/pause.png'
-
+import Fa from 'svelte-fa'
+import {faStepBackward, faStepForward} from '@fortawesome/free-solid-svg-icons'
 const dispatch = createEventDispatcher();
 
 function prevSong() {
@@ -23,16 +24,16 @@ function nextSong() {
     <button
         type="button"
         id="prevBtn"
-        class="btn btn-primary-outline btn-lg"
+        class="px-6 py-4 hover:bg-slate-700 rounded-full"
         on:focus={(e) => e.target.blur()}
         on:click={prevSong}>
-        <i class="fas fa-step-backward fa-2x fa-inverse" />
+        <Fa size="2x" icon={faStepBackward} />
     </button>
     {#if !songPlaying}
         <button
             type="button"
             id="playBtn"
-            class="btn btn-primary-outline btn-lg"
+            class="btn btn-primary-outline btn-lg hover:scale-110 active:scale-95"
             on:focus={(e) => e.target.blur()}
             on:click={playMusic}>
             <img src={frogPlay} alt='play song' class="w-[8rem]" />
@@ -41,7 +42,7 @@ function nextSong() {
         <button
             type="button"
             id="pauseBtn"
-            class="btn btn-primary-outline btn-lg"
+            class="btn btn-primary-outline btn-lg hover:scale-110 active:scale-95"
             on:focus={(e) => e.target.blur()}
             on:click={playMusic}>
             <img src={frogPause} alt='pause song' class="w-[8rem]" />
@@ -50,9 +51,9 @@ function nextSong() {
     <button
         type="button"
         id="nextBtn"
-        class="btn btn-primary-outline btn-lg"
+        class="px-6 py-4 hover:bg-slate-700 rounded-full"
         on:focus={(e) => e.target.blur()}
         on:click={nextSong}>
-        <i class="fas fa-step-forward fa-2x fa-inverse" />
+        <Fa size="2x" icon={faStepForward} />
     </button>
 </div>

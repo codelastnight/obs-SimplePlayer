@@ -58,9 +58,7 @@
         "portable"
       ]
     },
-    "portable": {
-      
-    }
+    "portable": {}
   },
   "author": "last night, Aveek Saha",
   "license": "MIT",
@@ -85,6 +83,7 @@
     "tailwindcss": "^3.1.6"
   },
   "dependencies": {
+    "@fortawesome/free-solid-svg-icons": "^6.1.1",
     "@rollup/plugin-image": "^2.1.1",
     "about-window": "^1.15.2",
     "chokidar": "^3.5.1",
@@ -98,6 +97,7 @@
     "music-metadata": "^6.4.0",
     "popper.js": "^1.16.1",
     "socket.io": "^4.5.1",
-    "socket.io-client": "^4.5.1"
+    "socket.io-client": "^4.5.1",
+    "svelte-fa": "^3.0.3"
   }
 }

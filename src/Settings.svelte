@@ -1,6 +1,7 @@
 <script>
 import { createEventDispatcher } from 'svelte';
-
+import Fa from 'svelte-fa'
+import {faVolumeMute, faVolumeHigh, faGear} from '@fortawesome/free-solid-svg-icons'
 export let slider;
 export let mute;
 export let shuffle;
@@ -20,26 +21,23 @@ function togglemute() {
 }
 </script>
 
-<div class="slidecontainer flex gap-x-3 items-center">
-    {#if mute}
+<div class="slidecontainer flex gap-x-1 items-center">
+    
     <button
-        type="button"
-        id="checkboxrn"
-        on:focus={(e) => e.target.blur()}
-        on:click={togglemute}
-        class="btn btn-primary-outline btn-lg justify-content-end">
-        <i class="fas fa-volume-off fa-lg fa-inverse" />
+    type="button"
+    id="checkboxrn"
+    on:focus={(e) => e.target.blur()}
+    on:click={togglemute}
+    class="btn btn-primary-outline btn-lg justify-content-end hover:bg-slate-700 py-2 px-4 rounded-full">
+        
+        {#if mute}
+        <Fa icon={faVolumeMute} class="w-[25px]" />
+        {:else}
+        <Fa icon={faVolumeHigh} class="w-[25px]" />
+
+    {/if}
     </button>
-{:else}
-    <button
-        type="button"
-        id="checkboxrn"
-        on:focus={(e) => e.target.blur()}
-        on:click={togglemute}
-        class="btn btn-primary-outline btn-lg justify-content-end">
-        <i class="fas fa-volume-up fa-lg fa-inverse" />
-    </button>
-{/if}
+
     <input
     type="range"
     min="0"
@@ -47,13 +45,19 @@ function togglemute() {
     class="slider"
     bind:value={slider}
     id="myRange" />
-  
-</div>
 
-<div class="btn-group float-right flex gap-x-4 " role="group">
    
 
-    {#if shuffle}
+
+
+    
+
+</div>
+
+<div class=" flex gap-x-4 " role="group">
+   
+
+    <!-- {#if shuffle}
         <button
             type="button"
             id="shuffleBtn"
@@ -71,14 +75,7 @@ function togglemute() {
             class="btn btn-primary-outline btn-lg justify-content-end">
             <i class="fas fa-sync-alt fa-lg fa-inverse" />
         </button>
-    {/if}
+    {/if} -->
 
-    <button
-        type="button"
-        id="playlistBtn"
-        on:focus={(e) => e.target.blur()}
-        on:click={showPlaylist}
-        class="btn btn-primary-outline btn-lg justify-content-end">
-        <i class="fas fa-bars fa-lg fa-inverse" />
-    </button>
+ 
 </div>

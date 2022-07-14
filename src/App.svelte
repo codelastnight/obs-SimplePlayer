@@ -4,26 +4,40 @@ import TrackDetails from './TrackDetails.svelte';
 import PlaybackControls from './PlaybackControls.svelte';
 import Settings from './Settings.svelte';
 import {io} from 'socket.io-client';
- import {onMount} from 'svelte'
- import './tailwind.css'
+import {onMount} from 'svelte'
+import './tailwind.css'
+import Fa from 'svelte-fa'
+import {faXmark, faCircleNotch, faCircleDot, faCircleExclamation, faCircleCheck, faGear} from '@fortawesome/free-solid-svg-icons'
+import frog1 from './static/Froge.gif'
+import frog2 from './static/frogmusicnotes.gif'
+
 const socket = io('http://localhost:9990');
 const eAPI = window.electronAPI
-//const fs = require('fs');
-//const path = require('path');
-//const mm = require('music-metadata');
-//const chokidar = require('chokidar');
+
 let test = 'loading...';
+let state = 'init'
+
+
+const connection = {
+    init: [faCircleNotch,'loading...','bg-slate-800'],
+
+    loading: [faCircleDot,'loading...','bg-slate-600'],
+    disconnect: [faCircleExclamation,'ur disconnected :( restart app?','bg-yellow-600'],
+    ready: [faCircleCheck,'ready 2 play ','bg-emerald-600']
+}
+$:connectionText = connection[state][1]
 socket.on('onload', function(msg) {
         test = msg
-
         socket.emit('whoiam','sender')
  });
 socket.on('whouare', function(msg) {
     test = msg
+    state='ready'
+
 })
 socket.on('disconnect', function() {
     test = 'uh oh ur disconnected. restart?'
-
+    state = 'disconnect'
 })
 
 
@@ -39,7 +53,6 @@ let theme = 'dark';
 let duration = '00:00';
 let timer = '00:00';
 
-let files = null;
 let player = null;
 
 let offsetWidth;
@@ -48,15 +61,15 @@ let shuffle = false;
 let mute = false;
 let slider = 100;
 
-let obsTitle = 'Current DJ'
+let obsTitle = 'Currently playing DJ(s): '
 
 let doanimate = true;
+let doAnimRand = true;
 let showtrackartist = false;
 let showtrack = true;
 $: replaceTrack = trackName
 let fontSize = 16
 let width = 20
-
 
 onMount(()=> {
     async function checkSettings()  {
@@ -100,7 +113,8 @@ function updateOBS() {
     showtrack: showtrack,
     showartist: showtrackartist,
     fontSize: fontSize,
-    width: width
+    width: width,
+    animRand: doAnimRand
     }
     )
 }
@@ -135,11 +149,6 @@ function setTheme(data) {
         });
     }
 }
-
-
-
-
-
 
 
 function themeChange(data) {
@@ -643,13 +652,27 @@ $: if (player) {
 	@tailwind base;
 	@tailwind components;
 	@tailwind utilities;
-
+    body {
+        @apply bg-slate-900
+    } 
     .progress .progress-bar {
     -webkit-transition: none;
     -o-transition: none;
     transition: none;
-}
-  </style>
+    }
+    .toggle-bg:after {
+        content: '';
+        @apply absolute top-0.5 left-0.5 bg-slate-400 border border-slate-300 rounded-full h-5 w-5 transition shadow-sm;
+    }
+    input:checked + .toggle-bg:after {
+        transform: translateX(100%);
+        @apply border-slate-500;
+    }
+    input:checked + .toggle-bg {
+        @apply bg-emerald-400 border-emerald-400;
+    }
+
+</style>
 
 <svelte:window
     on:keyup={(e) => {
@@ -659,57 +682,71 @@ $: if (player) {
 <main class="grid grid-cols-2 py-3 px-3 w-full h-full">
   
         {#if playListVisible}
-        <section class="w-[600px] absolute p-4 top-0 right-0 z-50">
-            <div class="bg-slate-700 rounded-xl py-4 px-8 flex flex-col gap-y-2">
-                <div class="flex justify-between">   
+        
+        <section class="w-[550px] absolute p-4 top-10 right-0 z-50 drop-shadow	">
+            <div class="bg-slate-700 rounded-xl py-4 px-4 flex flex-col gap-y-2   border border-slate-600">
+                <div class="flex justify-between items-center">   
                     <h1 class="text-xl font-bold">OBS settings</h1>
-                    <button on:click={()=> {playListVisible = false}} class="py-1 px-2 bg-slate-800 hover:bg-slate-600 rounded-full">close</button>
-
+                    <div class="flex items-center  gap-x-1 ">
+                        <button on:click={updateOBS} class="text-sm py-1 px-4 underline hover:bg-slate-600 rounded-full">force send obs update</button>
+                        <button on:click={()=> {playListVisible = false}} class=" py-2 px-4 bg-slate-800 hover:bg-red-600 rounded-full"><Fa icon={faXmark} /></button>
+    
+                    </div>
+                  
                 </div>
                 
-                <label for="titletext">heading</label>
-                <input bind:value={obsTitle} on:input={updateOBS} class="bg-slate-600 px-4 py-1 rounded-full" id="titletext" type="text" />
-                <div class="flex gap-x-4">
-                    <div>
-                        <input bind:checked={doanimate} on:change={updateOBS} class="bg-slate-600 px-4 py-1 rounded-full" id="titletext" type="checkbox" />
-                        <label>animate</label>
-                        
-                    </div>
-                    <div>
-                        <input bind:checked={showtrackartist} on:change={updateOBS} class="bg-slate-600 px-4 py-1 rounded-full" id="titletext" type="checkbox" />
-                        <label>show track artist</label>
-                    </div>
-                    <div>
-                        <input bind:checked={showtrack} on:change={updateOBS} class="bg-slate-600 px-4 py-1 rounded-full" id="titletext" type="checkbox" />
-                        <label>show track name</label>
-                    </div>
+              
+                <div class="grid grid-cols-2 gap-y-4  ">
+                    <label class="flex items-center cursor-pointer relative ">
+                        <input bind:checked={doanimate} on:change={updateOBS} class="sr-only" role='switch' type="checkbox" />
+                        <div class="toggle-bg bg-slate-600 border-2 border-slate-500 h-6 w-11 rounded-full"></div>
+                        <span class="pl-2">float animation</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer relative ">
+                        <input bind:checked={doAnimRand} on:change={updateOBS} class="sr-only" role='switch' type="checkbox" />
+                        <div class="toggle-bg bg-slate-600 border-2 border-slate-500 h-6 w-11 rounded-full"></div>
+                        <span class="pl-2">random animation</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer relative ">
+                        <input bind:checked={showtrackartist} on:change={updateOBS} class="sr-only" role='switch' type="checkbox" />
+                        <div class="toggle-bg bg-slate-600 border-2 border-slate-500 h-6 w-11 rounded-full"></div>
+                        <span class="pl-2">show artist</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer relative ">
+                        <input bind:checked={showtrack} on:change={updateOBS} class="sr-only" role='switch' type="checkbox" />
+                        <div class="toggle-bg bg-slate-600 border-2 border-slate-500 h-6 w-11 rounded-full"></div>
+                        <span class="pl-2">show track</span>
+                    </label>
                 </div>
-               
-                <label>custom track name (resets automatically)</label>
+                <label for="titletext">obs heading:</label>
+                <input bind:value={obsTitle} on:input={updateOBS} class="bg-slate-600 px-4 py-1 w-full rounded-lg" id="titletext" type="text" />
+                <label>change track text (resets automatically):</label>
                 <div class='flex gap-x-2'>
-                    <input bind:value={replaceTrack} on:input={updateOBS} class="bg-slate-600 px-4 py-1 w-full rounded-full" id="titletext" type="text" />
-                    <button on:click={()=> {resetTrackTitle(); updateOBS()}} class="py-2 px-4 bg-slate-800 hover:bg-slate-600 rounded-full">reset</button>
-                </div>   
-                <label>
+                    <input bind:value={replaceTrack} on:input={updateOBS} class="bg-slate-600 px-4 py-1 w-full rounded-lg" id="titletext" type="text" />
+                    <button on:click={()=> {resetTrackTitle(); updateOBS()}} class="py-1 px-4 bg-slate-800 hover:bg-slate-600 rounded-full">reset</button>
+                </div>  
+                 
+                <label class="flex justify-end gap-x-2">
                     fontsize
-                    <input class="bg-slate-500 px-2 py-1" type=number on:change={updateOBS} bind:value={fontSize} min=6 max=50>
+                    <input class="bg-slate-600 px-2 py-1 rounded-lg" type=number on:change={updateOBS} bind:value={fontSize} min=6 max=50>
                     <input type=range bind:value={fontSize} on:input={updateOBS} min=6 max=50>
-                    <button on:click={()=> {fontSize = 16; updateOBS()}} class="py-1 px-2 bg-slate-800 hover:bg-slate-600 rounded-full">reset</button>
+                    <button on:click={()=> {fontSize = 16; updateOBS()}} class="py-1 px-4 bg-slate-800 hover:bg-slate-600  rounded-full">reset</button>
 
                 </label>
-                <label>
+                <label class="flex justify-end gap-x-2 ">
                      box width
-                    <input class="bg-slate-500 px-2 py-1" type=number on:change={updateOBS} bind:value={width} min=6 max=80>
+                    <input class="bg-slate-600 px-2 py-1 rounded-lg" type=number on:change={updateOBS} bind:value={width} min=6 max=80>
                     <input type=range bind:value={width} on:input={updateOBS} min=6 max=80>
-                    <button on:click={()=> {width = 20; updateOBS()}} class="py-1 px-2 bg-slate-800 hover:bg-slate-600 rounded-full">reset</button>
+                    <button on:click={()=> {width = 20; updateOBS()}} class="py-1 px-4 bg-slate-800 hover:bg-slate-600 rounded-full">reset</button>
 
                 </label>             
-                <button on:click={updateOBS} class="py-1 px-4 bg-slate-800 hover:bg-emerald-600 rounded-full">force update obs</button>
+              
 
             </div>
         </section>
         {/if}
-        <section class="w-full overflow-y-scroll pr-[10px]">
+        <section class="w-full h-full flex flex-col overflow-y-hidden pr-[10px]">
+           
             {#if loading}
                 <div
                     class="spinner-border text-danger centerBlock"
@@ -718,24 +755,51 @@ $: if (player) {
                     <span class="sr-only">Loading...</span>
                 </div>
             {:else} 
-            <p class="p-2">  {test}</p>
+            
           
 
              <Playlist
             {player}
-            on:changeSong={(event) => playPlaylistSong(event.detail.index)} />{/if}
+            on:changeSong={(event) => playPlaylistSong(event.detail.index)} />
+            {/if}
             </section>
 
-        <section class="flex justify-center items-center">
-            <div class="h-full flex flex-col py-8 px-4 justify-between min-w-full">
-                <div class="col-md-12 text-center">
+        <section class="flex flex-col h-full w-full pb-6 items-center justify-between">
+            
+            <div class="flex gap-x-2 self-end justify-between w-full">
+                <div class={`py-2 px-4 rounded-full flex gap-x-2 items-center ${ connection[state][2]} w-fit `}> 
+                    <Fa icon={connection[state][0]} spin={state === 'init'} />  <p>{connectionText}</p>
+                 </div>
+                <button
+                type="button"
+                id="playlistBtn"
+                on:focus={(e) => e.target.blur()}
+                on:click={showPlaylist}
+                class="rounded-full gap-x-2 px-4 py-2 flex items-center hover:bg-slate-700">
+                OBS Settings
+                <Fa icon={faGear} />
+            </button>
+                
+            </div>
+           
+            <div class="flex flex-col  h-full w-full justify-between my-8">
+                <div class=" text-center">
                     <TrackDetails
                         {trackName}
                         {trackArtist}
                         {trackAlbum}
                         {theme} />
+                    {#if songPlaying}
+                    <div class="flex pointer-events-none	">
+                        <img src={frog1} class="absolute left-1/3" alt="frog dance" />
+                        <img src={frog2} alt="frog dance 2" />
+                    </div>
+                     
+
+                    {/if}
                 </div>
-                <div>
+                
+                <div class="px-2">
                     <div class="col-md-12 text-center">
                         <PlaybackControls
                             on:prevSong={prevSong}
@@ -762,16 +826,16 @@ $: if (player) {
                         </div>
                     </div>
                 </div>
-               
-                <div class="col-md-12" id="outerCtrl">
-                    <Settings
-                        on:showPlaylist={showPlaylist}
-                        on:toggleShuffle={toggleShuffle}
-                        {shuffle}
-                        on:togglemute={togglemute}
-                        bind:slider
-                        {mute} />
-                </div>
+            </div>
+            
+            <div class="flex items-center justify-between w-full" id="outerCtrl">
+                <Settings
+                    on:showPlaylist={showPlaylist}
+                    on:toggleShuffle={toggleShuffle}
+                    {shuffle}
+                    on:togglemute={togglemute}
+                    bind:slider
+                    {mute} />
             </div>
         </section>
     </main>
