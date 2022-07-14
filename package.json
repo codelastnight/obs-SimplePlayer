@@ -1,6 +1,6 @@
 {
   "name": "obs-simpleplayer",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "homepage": "",
   "description": "simple music player meant for obs streams",
   "repository": {
