@@ -165,14 +165,19 @@
             var main =   document.getElementById('main')
 
             var delay = 2000 //120000
+            function randomize(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    let j = Math.floor(Math.random() * (i + 1));
 
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
             const animList = ['shake','spinY','spinZ','spinX','bounce']
             let timerId = setTimeout(animstart, delay);
 
             function animstart() {
-                const animate = animList[  
-                    Math.floor(Math.random() * animList.length)
-                ]
+                const animate = randomize(animList)[0]
                 main.classList.add(animate)
                 timerId = setTimeout(()=> animend(animate), 2000);
             }
