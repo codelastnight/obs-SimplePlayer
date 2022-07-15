@@ -174,7 +174,7 @@ function createMenu(theme, sort) {
                             homepage: 'https://github.com/codelastnight/obs-SimplePlayer',
                             copyright: 'arts + crafts',
                             icon_path: path.join(__dirname, 'logo.png')
-                                                });
+                        });
                     }
                 }
             ]
@@ -237,14 +237,14 @@ function createWindow() {
     dark = true;
     createMenu(theme, sort);
     // and load the index.html of the app.
-    win.loadFile( path.join(__dirname, 'public/index.html'))
+    win.loadFile(path.join(__dirname, 'public/index.html'))
 
     win.webContents.once('dom-ready', () => {
         storage.isPathExists('path', function (isDoes) {
             if (isDoes) {
                 storage.get('path', function (error, data) {
-                    if (error)   throw (error)
-                    else  {
+                    if (error) throw (error)
+                    else {
                         console.log(data)
                         scanDir(data.path.toString())
                     }
@@ -252,7 +252,7 @@ function createWindow() {
                 });
             }
         });
-        
+
     });
     // win.loadURL(
     //     url.format({
@@ -264,42 +264,42 @@ function createWindow() {
     ipcMain.on('openDir', (e) => {
         openFolderDialog()
     })
-    ipcMain.on('data:set', (e,data) => {
+    ipcMain.on('data:set', (e, data) => {
         let combine = {}
         storage.isPathExists(data.key, function (isDoes) {
             if (isDoes) {
                 storage.get(key, function (error, combinedata) {
-                    if (error)   throw (error)
+                    if (error) throw (error)
                     else combine = combinedata
                 });
             }
         });
         storage.set(
             data.key,
-            {...combine, ...data.value},
+            { ...combine, ...data.value },
             function (error) {
                 if (error) return false;
             }
         );
         return true
     })
-    ipcMain.handle('data:get', async (e,key) => {
+    ipcMain.handle('data:get', async (e, key) => {
         storage.isPathExists(key, function (isDoes) {
             if (isDoes) {
                 storage.get(key, function (error, data) {
 
-                    if (error)   return {type: 'error', data: null}
-                    else  return {type: 'ok', data: data}
+                    if (error) return { type: 'error', data: null }
+                    else return { type: 'ok', data: data }
                 });
-            } 
-            
-            
+            }
+
+
         });
-        return {type: 'unsaved', data: null}
+        return { type: 'unsaved', data: null }
     });
     // Open the DevTools.
     if (isDev) win.webContents.openDevTools();
-    ipcMain.on('scanDir', (e,path) => {
+    ipcMain.on('scanDir', (e, path) => {
         scanDir(path);
     });
     win.on('close', (e) => {
@@ -326,7 +326,7 @@ ipcMain.on('closed', () => {
 });
 
 
-app.whenReady().then( () => {
+app.whenReady().then(() => {
     createWindow();
 });
 
@@ -388,11 +388,12 @@ var walkSync = function (dir, filelist) {
 async function parseFiles(audioFiles) {
     var titles = [];
 
-   // loading = true;
+    // loading = true;
 
     for (const audioFile of audioFiles) {
         // await will ensure the metadata parsing is completed before we move on to the next file
-        const metadata = await mm.parseFile(audioFile, { skipCovers: true });
+        const metadata = await mm.parseFile(audioFile, { skipCovers: true })
+            .catch((err) => { console.error(err); return [] });
         const stats = fs.statSync(audioFile);
         var data = {};
         var title = metadata.common.title;
@@ -425,7 +426,7 @@ async function scanDir(filePath) {
     arg.names = names;
 
     win.webContents.send('selected-files', arg);
-    
+
     watcher
         .on('add', (path) => win.webContents.send('playlist:add', path))
         .on('unlink', (path) => win.webContents.send('playlist:remove', path));

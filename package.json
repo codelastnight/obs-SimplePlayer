@@ -1,6 +1,6 @@
 {
   "name": "obs-simpleplayer",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "homepage": "",
   "description": "simple music player meant for obs streams",
   "repository": {
@@ -94,7 +94,7 @@
     "express": "^4.18.1",
     "howler": "^2.2.1",
     "jquery": "^3.5.1",
-    "music-metadata": "^6.4.0",
+    "music-metadata": "^7.12.4",
     "popper.js": "^1.16.1",
     "socket.io": "^4.5.1",
     "socket.io-client": "^4.5.1",
