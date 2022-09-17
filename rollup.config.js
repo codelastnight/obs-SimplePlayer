@@ -7,12 +7,14 @@ import sveltePreprocess from "svelte-preprocess";
 import tailwindcss from "tailwindcss";
 import autoprefixer from "autoprefixer";
 import image from '@rollup/plugin-image';
+import typescript from '@rollup/plugin-typescript';
+
 const production = !process.env.ROLLUP_WATCH;
 
 export default {
-    input: 'src/main.js',
+    input: 'src/main.ts',
     output: {
-        sourcemap: false,
+        sourcemap: true,
         format: 'iife',
         name: 'app',
         file: 'public/build/bundle.js'
@@ -45,7 +47,7 @@ export default {
             dedupe: ['svelte']
         }),
         commonjs(),
-
+        typescript(),
         // In dev mode, call `npm run start` once
         // the bundle has been generated
         !production && serve(),
@@ -57,6 +59,7 @@ export default {
         // If we're building for production (npm run build
         // instead of npm run dev), minify
         production && terser()
+        
     ],
  
     watch: {

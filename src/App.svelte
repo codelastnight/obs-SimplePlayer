@@ -10,6 +10,7 @@ import Fa from 'svelte-fa'
 import {faXmark, faCircleNotch, faCircleDot, faCircleExclamation, faCircleCheck, faGear} from '@fortawesome/free-solid-svg-icons'
 import frog1 from './static/Froge.gif'
 import frog2 from './static/frogmusicnotes.gif'
+import {randomize, sortDefault,sortByArtist,sortByDate,sortByTitle} from './helpers';
 
 const socket = io('http://localhost:9990');
 const eAPI = window.electronAPI
@@ -40,6 +41,11 @@ socket.on('disconnect', function() {
     state = 'disconnect'
 })
 
+socket.on('ask4update', function(msg) {
+    if (msg === 'pls') {
+        updateOBS()
+    }
+})
 
 let trackName = '';
 let trackArtist = '';
@@ -81,10 +87,10 @@ onMount(()=> {
             if (settings.data.shuffle) shuffle = true;
             if (settings.data.volume) slider = settings.data.volume;
         }
-        if (theme!== undefined&& theme.type === 'ok') {
-            setTheme(theme.data);
+        // if (theme!== undefined&& theme.type === 'ok') {
+        //     setTheme(theme.data);
 
-        }
+        // }
         if (getpath!== undefined &&getpath.type === 'ok') {
             eAPI.handleScanDir(getpath.data.path.toString());
 
@@ -96,11 +102,6 @@ onMount(()=> {
 })
 
 
-socket.on('ask4update', function(msg) {
-    if (msg === 'pls') {
-        updateOBS()
-    }
-})
 
 
 function updateOBS() {
@@ -124,90 +125,60 @@ function resetTrackTitle() {
 }
 
 
-function setTheme(data) {
-    var icons = document.body.querySelectorAll('svg');
-    if (data.theme == 'light') {
-        theme = 'light';
-        document.body.style.backgroundColor = '#F5F5F5';
-        document.body.style.color = '#212529';
+// function setTheme(data) {
+//     var icons = document.body.querySelectorAll('svg');
+//     if (data.theme == 'light') {
+//         theme = 'light';
+//         document.body.style.backgroundColor = '#F5F5F5';
+//         document.body.style.color = '#212529';
 
-        icons.forEach((icon) => {
-            icon.style.color = '#212529';
-        });
-    } else if (data.theme == 'dark') {
-        theme = 'dark';
-        document.body.style.backgroundColor = '#212121';
-        document.body.style.color = 'azure';
+//         icons.forEach((icon) => {
+//             icon.style.color = '#212529';
+//         });
+//     } else if (data.theme == 'dark') {
+//         theme = 'dark';
+//         document.body.style.backgroundColor = '#212121';
+//         document.body.style.color = 'azure';
 
-        icons.forEach((icon) => {
-            icon.style.color = 'azure';
-        });
-    } else if (data.theme == 'disco') {
-        theme = 'disco';
-        icons.forEach((icon) => {
-            icon.style.color = 'azure';
-        });
-    }
-}
-
-
-function themeChange(data) {
-    setTheme(data);
-}
+//         icons.forEach((icon) => {
+//             icon.style.color = 'azure';
+//         });
+//     } else if (data.theme == 'disco') {
+//         theme = 'disco';
+//         icons.forEach((icon) => {
+//             icon.style.color = 'azure';
+//         });
+//     }
+// }
 
 
-eAPI.handleThemeChange((event, arg) => {
-    themeChange(arg);
+// function themeChange(data) {
+//     setTheme(data);
+// }
+
+
+// eAPI.handleThemeChange((event, arg) => {
+//     themeChange(arg);
+// })
+eAPI.logging((e,data)=> {
+    console.log(data);
 })
-function sortByTitle(arr, des = false) {
-    arr.sort((a, b) => {
-        let fa, fb;
-        if (!des) {
-            fa = a.name.toLowerCase();
-            fb = b.name.toLowerCase();
-        } else {
-            fa = b.name.toLowerCase();
-            fb = a.name.toLowerCase();
-        }
-        if (fa < fb) return -1;
-        if (fa > fb) return 1;
-        return 0;
-    });
-    return arr;
-}
 
-function sortByArtist(arr, des = false) {
-    arr.sort((a, b) => {
-        let fa, fb;
-        if (!des) {
-            fa = a.artist.toLowerCase();
-            fb = b.artist.toLowerCase();
-        } else {
-            fa = b.artist.toLowerCase();
-            fb = a.artist.toLowerCase();
-        }
-        if (fa < fb) return -1;
-        if (fa > fb) return 1;
-        return 0;
-    });
-    return arr;
-}
+// function sortByDate(arr, des = false) {
+//     arr.sort((a, b) => {
+//         if (!des) return b.date - a.date;
+//         return a.date - b.date;
+//     });
+//     return arr;
+// }
 
-function sortByDate(arr, des = false) {
-    arr.sort((a, b) => {
-        if (!des) return b.date - a.date;
-        return a.date - b.date;
-    });
-    return arr;
-}
-
-function sortDefault(arr, des = false) {
-    arr.sort((a, b) => {
-        if (!des) return a.index - b.index;
-        return b.index - a.index;
-    });
-    return arr;
-}
+// function sortDefault(arr, des = false) {
+//     arr.sort((a, b) => {
+//         if (!des) return a.index - b.index;
+//         return b.index - a.index;
+//     });
+//     return arr;
+// }
 
 eAPI.handleSortChange((event, arg) => {
     if (player) {
@@ -300,12 +271,20 @@ async function startPlayer(arg) {
     var songArr = [];
 
     for (let i = 0; i < songList.files.length; i++) {
+        let info = songList.names[i]
+        if (songList.names == undefined) {
+            info = {
+                name: songList.files[i],
+                artist: "none",
+                date: "none"
+            }
+        }
         songArr.push({
             title: songList.files[i],
             file: songList.files[i],
-            name: songList.names[i].title,
-            artist: songList.names[i].artist,
-            date: songList.names[i].modDate,
+            name: info.title,
+            artist: info.artist,
+            date: info.modDate,
             howl: null,
             index: i
         });
@@ -359,22 +338,22 @@ function getTags(audioFile) {
                 img.src = `data:${
                     picture.format
                 };base64,${picture.data.toString('base64')}`;
-                img.addEventListener('load', function () {
-                    if (theme == 'disco') {
-                        var vibrant = new Vibrant(img, 128, 3);
-                        var swatches = vibrant.swatches();
-                        if (swatches['DarkMuted'])
-                            document.body.style.backgroundColor = swatches[
-                                'DarkMuted'
-                            ].getHex();
-                        else document.body.style.backgroundColor = '#212121';
-                        if (swatches['LightVibrant'])
-                            document.body.style.color = swatches[
-                                'LightVibrant'
-                            ].getHex();
-                        else document.body.style.color = 'azure';
-                    }
-                });
+                // img.addEventListener('load', function () {
+                //     if (theme == 'disco') {
+                //         var vibrant = new Vibrant(img, 128, 3);
+                //         var swatches = vibrant.swatches();
+                //         if (swatches['DarkMuted'])
+                //             document.body.style.backgroundColor = swatches[
+                //                 'DarkMuted'
+                //             ].getHex();
+                //         else document.body.style.backgroundColor = '#212121';
+                //         if (swatches['LightVibrant'])
+                //             document.body.style.color = swatches[
+                //                 'LightVibrant'
+                //             ].getHex();
+                //         else document.body.style.color = 'azure';
+                //     }
+                // });
             } else {
                 img.style.display = 'none';
             }
@@ -445,14 +424,14 @@ var togglemute = function () {
     
 };
 
-function randomize(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
+// function randomize(array) {
+//     for (let i = array.length - 1; i > 0; i--) {
+//         let j = Math.floor(Math.random() * (i + 1));
 
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
+//         [array[i], array[j]] = [array[j], array[i]];
+//     }
+//     return array;
+// }
 
 var Player = function (playlist, index) {
     this.playlist = playlist;
@@ -766,7 +745,7 @@ $: if (player) {
 
         <section class="flex flex-col h-full w-full pb-6 items-center justify-between">
             
-            <div class="flex gap-x-2 self-end justify-between w-full">
+            <div class="flex gap-x-2 self-end justify-between  w-full">
                 <div class={`py-2 px-4 rounded-full flex gap-x-2 items-center ${ connection[state][2]} w-fit `}> 
                     <Fa icon={connection[state][0]} spin={state === 'init'} />  <p>{connectionText}</p>
                  </div>

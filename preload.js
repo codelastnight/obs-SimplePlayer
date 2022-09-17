@@ -16,7 +16,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     handleClosed: () => ipcRenderer.send( 'closed'),
     handleScanDir: (path) => ipcRenderer.send( 'scanDir', path),
     openDir: () => ipcRenderer.send( 'openDir'),
-
+    logging: (callback) => ipcRenderer.on('logging',callback),
     fsStatSync: (path) => fs.statSync(path),
     mmParseFile: (filePath, options) => mm.parseFile(filePath,options),
     pathSep: () =>  path.sep

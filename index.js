@@ -11,14 +11,17 @@ const path = require('path');
 const fs = require('fs');
 const openAboutWindow = require('about-window').default;
 const isDev = require('electron-is-dev');
-const storage = require('electron-storage');
+//const storage = require('electron-storage');
+const Store = require('electron-store');
+const store = new Store();
+
 const mm = require('music-metadata');
 const chokidar = require('chokidar');
 
 let files = null;
 
 // launch extra express server
-const { fork } = require('child_process')
+const { fork } = require('child_process');
 const ps = fork(`${__dirname}/server.js`)
 
 let status = 0;
@@ -35,18 +38,26 @@ if (isDev) {
     // autoUpdater.setFeedURL({ url });
 }
 
+let win;
+
+// const logging = (info) => {
+//     win.webContents.send('logging',info)
+//     return;
+// }
+
 function createMenu(theme, sort) {
     function handleClick(menuItem, browserWindow, event) {
         win.webContents.send('theme-change', {
             theme: menuItem.label.toLowerCase()
         });
-        storage.set(
-            'theme',
-            { theme: menuItem.label.toLowerCase() },
-            function (error) {
-                if (error) throw error;
-            }
-        );
+        store.set('theme',   { theme: menuItem.label.toLowerCase() } )
+        // storage.set(
+        //     'theme',
+        //     { theme: menuItem.label.toLowerCase() },
+        //     function (error) {
+        //         if (error) throw error;
+        //     }
+        // );
     }
 
     function handleSort(menuItem, browserWindow, event) {
@@ -185,9 +196,6 @@ function createMenu(theme, sort) {
         createMenuOther(openFolder, theme, info, sort);
     }
 }
-
-let win;
-
 function createWindow() {
     // Create the browser window.
     win = new BrowserWindow({
@@ -239,21 +247,28 @@ function createWindow() {
     // and load the index.html of the app.
     win.loadFile(path.join(__dirname, 'public/index.html'))
 
-    win.webContents.once('dom-ready', () => {
-        storage.isPathExists('path', function (isDoes) {
-            if (isDoes) {
-                storage.get('path', function (error, data) {
-                    if (error) throw (error)
-                    else {
-                        console.log(data)
-                        scanDir(data.path.toString())
-                    }
 
-                });
-            }
-        });
+    win.webContents.once('dom-ready', () => {
+        const path = store.get('path')
+        if (path == undefined) return;
+      //  logging(path)
+        scanDir(path)
+
+        // storage.isPathExists('path', function (isDoes) {
+        //     if (isDoes) {
+        //         storage.get('path', function (error, data) {
+        //             if (error) throw (error)
+        //             else {
+        //                logging(data)
+        //                 scanDir(data)
+        //             }
+
+        //         });
+        //     }
+        // });
 
     });
+       
     // win.loadURL(
     //     url.format({
     //         pathname:,
@@ -266,39 +281,50 @@ function createWindow() {
     })
     ipcMain.on('data:set', (e, data) => {
         let combine = {}
-        storage.isPathExists(data.key, function (isDoes) {
-            if (isDoes) {
-                storage.get(key, function (error, combinedata) {
-                    if (error) throw (error)
-                    else combine = combinedata
-                });
-            }
-        });
-        storage.set(
-            data.key,
-            { ...combine, ...data.value },
-            function (error) {
-                if (error) return false;
-            }
-        );
+        const combinedData = store.get(data.key)
+        if (combinedData == undefined) return;
+
+        combine = combinedData;
+
+        store.set(data.key, {...combine, ...data.value})
+        // storage.isPathExists(data.key, function (isDoes) {
+        //     if (isDoes) {
+        //         storage.get(key, function (error, combinedata) {
+        //             if (error) throw (error)
+        //             else combine = combinedata
+        //         });
+        //     }
+        // });
+        // storage.set(
+        //     data.key,
+        //     { ...combine, ...data.value },
+        //     function (error) {
+        //         if (error) return false;
+        //     }
+        // );
         return true
     })
     ipcMain.handle('data:get', async (e, key) => {
-        storage.isPathExists(key, function (isDoes) {
-            if (isDoes) {
-                storage.get(key, function (error, data) {
+        const data = store.get(key)
+        if (data == undefined) return  { type: 'unsaved', data: null };
 
-                    if (error) return { type: 'error', data: null }
-                    else return { type: 'ok', data: data }
-                });
-            }
+        return { type: 'ok', data: data };
+
+        // storage.isPathExists(key, function (isDoes) {
+        //     if (isDoes) {
+        //         storage.get(key, function (error, data) {
+
+        //             if (error) return { type: 'error', data: null }
+        //             else return { type: 'ok', data: data }
+        //         });
+        //     }
 
 
-        });
-        return { type: 'unsaved', data: null }
+        // });
+        // return { type: 'unsaved', data: null }
     });
-    // Open the DevTools.
-    if (isDev) win.webContents.openDevTools();
+
+
     ipcMain.on('scanDir', (e, path) => {
         scanDir(path);
     });
@@ -315,6 +341,8 @@ function createWindow() {
     win.on('closed', () => {
         win = null;
     });
+ // Open the DevTools.if (isDev)
+ win.webContents.openDevTools();
 }
 
 ipcMain.on('closed', () => {
@@ -348,9 +376,11 @@ async function openFolderDialog() {
         (result) => {
             const filePath = result.filePaths[0];
             if (filePath) {
-                storage.set('path', { path: filePath }, function (error) {
-                    if (error) throw error;
-                });
+                store.set('path',filePath);
+
+                // storage.set('path',  filePath , function (error) {
+                //     if (error) throw error;
+                // });
 
                 scanDir(filePath);
             }
@@ -409,6 +439,21 @@ async function parseFiles(audioFiles) {
     //loading = false;
 
     return titles;
+}
+async function parseFile(audioFile) {
+    // await will ensure the metadata parsing is completed before we move on to the next file
+    const metadata = await mm.parseFile(audioFile, { skipCovers: true })
+        .catch((err) => { console.error(err); return [] });
+    const stats = fs.statSync(audioFile);
+    var data = {};
+    var title = metadata.common.title;
+    var artist = metadata.common.artist;
+    if (title) data.title = metadata.common.title;
+    else data.title = audioFile.split(path.sep).slice(-1)[0];
+    if (artist) data.artist = metadata.common.artist;
+    else data.artist = '';
+    data.modDate = stats.mtime;
+    return data;
 }
 async function scanDir(filePath) {
     if (!filePath || filePath[0] == 'undefined') return;
