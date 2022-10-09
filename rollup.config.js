@@ -22,19 +22,22 @@ export default {
     plugins: [
         
         svelte({
-            preprocess: sveltePreprocess({
-                sourceMap: !production,
-                postcss: {
-					plugins: [tailwindcss(), autoprefixer()],
-				},
-              }),
-            // enable run-time checks when not in production
-            dev: !production,
-            // we'll extract any component CSS out into
-            // a separate file - better for performance
-            css: (css) => {
-                css.write('bundle.css');
+            compilerOptions: {
+                preprocess: sveltePreprocess({
+                    sourceMap: !production,
+                    postcss: {
+                        plugins: [tailwindcss(), autoprefixer()],
+                    },
+                   }),
+                // enable run-time checks when not in production
+                dev: !production,
+                // we'll extract any component CSS out into
+                // a separate file - better for performance
+                css: (css) => {
+                    css.write('bundle.css');
+                }
             }
+         
         }),
         image(),
         // If you have external dependencies installed from

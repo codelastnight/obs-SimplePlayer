@@ -81,6 +81,7 @@ function createMenu(theme, sort) {
     var info = {
         label: 'Info',
         click: function () {
+            win.webContents.openDevTools();
             openAboutWindow({
                 product_name: 'OBS simple player :)',
                 homepage: 'https://github.com/codelastnight/obs-SimplePlayer',
@@ -249,8 +250,9 @@ function createWindow() {
 
 
     win.webContents.once('dom-ready', () => {
-        const path = store.get('path')
-        if (path == undefined) return;
+        const path = store.get('path');
+        return; // temp
+        if (path === undefined) return;
       //  logging(path)
         scanDir(path)
 
