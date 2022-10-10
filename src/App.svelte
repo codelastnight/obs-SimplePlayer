@@ -5,7 +5,6 @@ import PlaybackControls from './PlaybackControls.svelte';
 import Settings from './Settings.svelte';
 import {io} from 'socket.io-client';
 import {onMount} from 'svelte'
-import './tailwind.css'
 import Fa from 'svelte-fa'
 import {faXmark, faCircleNotch, faCircleDot, faCircleExclamation, faCircleCheck, faGear} from '@fortawesome/free-solid-svg-icons'
 import frog1 from './static/Froge.gif'
@@ -627,6 +626,7 @@ $: if (player) {
     mute = false;
 }
 </script>
+
 <style global>
 	@tailwind base;
 	@tailwind components;

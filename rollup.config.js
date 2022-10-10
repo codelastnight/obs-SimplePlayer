@@ -4,8 +4,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
 import sveltePreprocess from "svelte-preprocess";
-import tailwindcss from "tailwindcss";
-import autoprefixer from "autoprefixer";
+
 import image from '@rollup/plugin-image';
 import typescript from '@rollup/plugin-typescript';
 
@@ -22,17 +21,18 @@ export default {
     plugins: [
         
         svelte({
+            preprocess: sveltePreprocess({
+                sourceMap: !production,
+                postcss: {plugins:[require('postcss-import'), require('tailwindcss'), require('autoprefixer')]}
+               }),
+            emitCss: false,
             compilerOptions: {
-                preprocess: sveltePreprocess({
-                    sourceMap: !production,
-                    postcss: {
-                        plugins: [tailwindcss(), autoprefixer()],
-                    },
-                   }),
+            
                 // enable run-time checks when not in production
                 dev: !production,
-                // we'll extract any component CSS out into
-                // a separate file - better for performance
+                			// Instead of making a separate file for component, push to PostCSS plugin.
+                // // we'll extract any component CSS out into
+                // // a separate file - better for performance
                 css: (css) => {
                     css.write('bundle.css');
                 }
