@@ -91,6 +91,7 @@ onMount(()=> {
 
         // }
         if (getpath!== undefined &&getpath.type === 'ok') {
+            if (getpath.data.path!==undefined)
             eAPI.handleScanDir(getpath.data.path.toString());
 
         }
