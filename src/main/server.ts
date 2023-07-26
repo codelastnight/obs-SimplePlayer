@@ -1,14 +1,17 @@
-const express = require('express');
-const path = require('path');
+import express, { Express, Request, Response } from 'express';
+import { createServer } from 'http';
 
+import { join } from 'path'
+import { Server } from 'socket.io';
 let app = express();
 
 let server = app.listen(9990);
-var io = require('socket.io')(server);
+const httpServer = createServer(app);
+const io = new Server(httpServer, { cors: { origin: '*' } });
 
 app.get('/', function (req, res) {
 
-    res.sendFile(path.join(__dirname, '/serve.html'));
+    res.sendFile(join(__dirname, '/serve.html'));
 
 });
 io.on('connection', (socket) => {

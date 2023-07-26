@@ -1,14 +1,14 @@
-const {
+import {
     app,
     BrowserWindow,
     dialog,
     Menu,
     ipcMain,
-} = require('electron');
+} from 'electron';
 const { autoUpdater } = require("electron-updater")
 
-const path = require('path');
-const fs = require('fs');
+import * as path from 'path'
+import * as fs from 'fs'
 const openAboutWindow = require('about-window').default;
 const isDev = require('electron-is-dev');
 //const storage = require('electron-storage');
@@ -21,16 +21,15 @@ const chokidar = require('chokidar');
 let files = null;
 
 // launch extra express server
-const { fork } = require('child_process');
-const ps = fork(`${__dirname}/server.js`)
-
+import { fork } from 'child_process';
+const child = fork(path.resolve(__dirname, 'server.js'), ['server'])
 let status = 0;
 let watcher;
 
 if (isDev) {
-    require('electron-reload')(__dirname, {
-        electron: require(`${__dirname}/node_modules/electron`)
-    });
+    // require('electron-reload')(__dirname, {
+    //     electron: require(`./node_modules/electron`)
+    // });
 } else {
     // const server = 'http://hazel-duskplayer.vercel.app/';
     // const url = `${server}/update/${process.platform}/${app.getVersion()}`;
@@ -50,7 +49,7 @@ function createMenu(theme, sort) {
         win.webContents.send('theme-change', {
             theme: menuItem.label.toLowerCase()
         });
-        store.set('theme',   { theme: menuItem.label.toLowerCase() } )
+        store.set('theme', { theme: menuItem.label.toLowerCase() })
         // storage.set(
         //     'theme',
         //     { theme: menuItem.label.toLowerCase() },
@@ -204,9 +203,9 @@ function createWindow() {
         height: 620,
         icon: __dirname + '/dusk.png',
         webPreferences: {
-            nodeIntegration: true,
+            //nodeIntegration: true,
             nodeIntegrationInWorker: true,
-            preload: path.join(__dirname, 'preload.js'),
+            preload: path.join(__dirname, '../preload/index.js'),
             enableRemoteModule: true,
             backgroundThrottling: false,
             webviewTag: true
@@ -253,7 +252,7 @@ function createWindow() {
         const path = store.get('path');
         return; // temp
         if (path === undefined) return;
-      //  logging(path)
+        //  logging(path)
         scanDir(path)
 
         // storage.isPathExists('path', function (isDoes) {
@@ -270,7 +269,7 @@ function createWindow() {
         // });
 
     });
-       
+
     // win.loadURL(
     //     url.format({
     //         pathname:,
@@ -288,7 +287,7 @@ function createWindow() {
 
         combine = combinedData;
 
-        store.set(data.key, {...combine, ...data.value})
+        store.set(data.key, { ...combine, ...data.value })
         // storage.isPathExists(data.key, function (isDoes) {
         //     if (isDoes) {
         //         storage.get(key, function (error, combinedata) {
@@ -308,7 +307,7 @@ function createWindow() {
     })
     ipcMain.handle('data:get', async (e, key) => {
         const data = store.get(key)
-        if (data == undefined) return  { type: 'unsaved', data: null };
+        if (data == undefined) return { type: 'unsaved', data: null };
 
         return { type: 'ok', data: data };
 
@@ -343,8 +342,8 @@ function createWindow() {
     win.on('closed', () => {
         win = null;
     });
- // Open the DevTools.if (isDev)
- win.webContents.openDevTools();
+    // Open the DevTools.if (isDev)
+    win.webContents.openDevTools();
 }
 
 ipcMain.on('closed', () => {
@@ -378,7 +377,7 @@ async function openFolderDialog() {
         (result) => {
             const filePath = result.filePaths[0];
             if (filePath) {
-                store.set('path',filePath);
+                store.set('path', filePath);
 
                 // storage.set('path',  filePath , function (error) {
                 //     if (error) throw error;
@@ -395,7 +394,7 @@ async function openFolderDialog() {
 
 
 
-var walkSync = function (dir, filelist) {
+var walkSync = function (dir, filelist = []) {
     files = fs.readdirSync(dir);
     filelist = filelist || [];
     files.forEach(function (file) {
