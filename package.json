@@ -9,7 +9,7 @@
   },
   "main": "./out/main/index.js",
   "scripts": {
-    "dev": "electron-vite dev",
+    "dev": "electron-vite dev --watch",
     "preview": "electron-vite preview",
     "prebuild": "electron-vite build",
     "build:win": "npm run build && electron-builder --win --config",
@@ -65,6 +65,7 @@
   "author": "last night, Aveek Saha",
   "license": "MIT",
   "devDependencies": {
+    "@electron-toolkit/tsconfig": "^1.0.1",
     "@sveltejs/vite-plugin-svelte": "^1.4.0",
     "autoprefixer": "^10.4.14",
     "concurrently": "^7.6.0",
@@ -84,6 +85,7 @@
   },
   "dependencies": {
     "@electron-toolkit/preload": "^2.0.0",
+    "@electron-toolkit/utils": "^2.0.0",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
     "@tsconfig/svelte": "^3.0.0",
     "about-window": "^1.15.2",

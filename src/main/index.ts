@@ -6,6 +6,7 @@ import {
     ipcMain,
 } from 'electron';
 const { autoUpdater } = require("electron-updater")
+import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 
 import * as path from 'path'
 import * as fs from 'fs'
@@ -245,8 +246,11 @@ function createWindow() {
     dark = true;
     createMenu(theme, sort);
     // and load the index.html of the app.
-    win.loadFile(path.join(__dirname, 'public/index.html'))
-
+    if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+        win.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    } else {
+        win.loadFile(path.join(__dirname, '../renderer/index.html'))
+    }
 
     win.webContents.once('dom-ready', () => {
         const path = store.get('path');

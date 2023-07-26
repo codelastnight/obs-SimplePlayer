@@ -25,11 +25,11 @@ import {
     faCircleCheck,
     faGear
 } from '@fortawesome/free-solid-svg-icons';
-import frog1 from './static/Froge.gif';
-import frog2 from './static/frogmusicnotes.gif';
+import frog1 from './static/Froge.gif?asset';
+import frog2 from './static/frogmusicnotes.gif?asset';
 
-const socket = io('http://localhost:9990');
-const eAPI = window.electronAPI;
+const socket = io('http://localhost:9990', {});
+const eAPI = window.api;
 
 let test = 'loading...';
 let state = 'init';
@@ -169,9 +169,9 @@ function resetTrackTitle() {
 // eAPI.handleThemeChange((event, arg) => {
 //     themeChange(arg);
 // })
-eAPI.logging((e, data) => {
-    console.log(data);
-});
+// eAPI.logging((e, data) => {
+//     console.log(data);
+// });
 
 // function sortByDate(arr, des = false) {
 //     arr.sort((a, b) => {
@@ -657,13 +657,13 @@ input:checked + .toggle-bg {
 
 <main class="grid grid-cols-2 py-3 px-3 w-full h-full">
     {#if playListVisible}
-        <section class="w-[550px] absolute p-4 top-10 right-0 z-50 drop-shadow	">
+        <section class="w-[550px] absolute p-4 top-10 right-0 z-50 drop-shadow">
             <div
-                class="bg-slate-700 rounded-xl py-4 px-4 flex flex-col gap-y-2   border border-slate-600"
+                class="bg-slate-700 rounded-xl py-4 px-4 flex flex-col gap-y-2 border border-slate-600"
             >
                 <div class="flex justify-between items-center">
                     <h1 class="text-xl font-bold">OBS settings</h1>
-                    <div class="flex items-center  gap-x-1 ">
+                    <div class="flex items-center gap-x-1">
                         <button
                             on:click={updateOBS}
                             class="text-sm py-1 px-4 underline hover:bg-slate-600 rounded-full"
@@ -679,8 +679,8 @@ input:checked + .toggle-bg {
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-y-4  ">
-                    <label class="flex items-center cursor-pointer relative ">
+                <div class="grid grid-cols-2 gap-y-4">
+                    <label class="flex items-center cursor-pointer relative">
                         <input
                             bind:checked={doanimate}
                             on:change={updateOBS}
@@ -693,7 +693,7 @@ input:checked + .toggle-bg {
                         />
                         <span class="pl-2">float animation</span>
                     </label>
-                    <label class="flex items-center cursor-pointer relative ">
+                    <label class="flex items-center cursor-pointer relative">
                         <input
                             bind:checked={doAnimRand}
                             on:change={updateOBS}
@@ -706,7 +706,7 @@ input:checked + .toggle-bg {
                         />
                         <span class="pl-2">random animation</span>
                     </label>
-                    <label class="flex items-center cursor-pointer relative ">
+                    <label class="flex items-center cursor-pointer relative">
                         <input
                             bind:checked={showtrackartist}
                             on:change={updateOBS}
@@ -719,7 +719,7 @@ input:checked + .toggle-bg {
                         />
                         <span class="pl-2">show artist</span>
                     </label>
-                    <label class="flex items-center cursor-pointer relative ">
+                    <label class="flex items-center cursor-pointer relative">
                         <input
                             bind:checked={showtrack}
                             on:change={updateOBS}
@@ -782,11 +782,11 @@ input:checked + .toggle-bg {
                             fontSize = 16;
                             updateOBS();
                         }}
-                        class="py-1 px-4 bg-slate-800 hover:bg-slate-600  rounded-full"
+                        class="py-1 px-4 bg-slate-800 hover:bg-slate-600 rounded-full"
                         >reset</button
                     >
                 </label>
-                <label class="flex justify-end gap-x-2 ">
+                <label class="flex justify-end gap-x-2">
                     box width
                     <input
                         class="bg-slate-600 px-2 py-1 rounded-lg"
@@ -835,7 +835,7 @@ input:checked + .toggle-bg {
     <section
         class="flex flex-col h-full w-full pb-6 items-center justify-between"
     >
-        <div class="flex gap-x-2 self-end justify-between  w-full">
+        <div class="flex gap-x-2 self-end justify-between w-full">
             <div
                 class={`py-2 px-4 rounded-full flex gap-x-2 items-center ${connection[state][2]} w-fit `}
             >
@@ -854,11 +854,11 @@ input:checked + .toggle-bg {
             </button>
         </div>
 
-        <div class="flex flex-col  h-full w-full justify-between my-8">
+        <div class="flex flex-col h-full w-full justify-between my-8">
             <div class=" text-center">
                 <TrackDetails {trackName} {trackArtist} {trackAlbum} {theme} />
                 {#if songPlaying}
-                    <div class="flex pointer-events-none	">
+                    <div class="flex pointer-events-none">
                         <img
                             src={frog1}
                             class="absolute left-1/3"

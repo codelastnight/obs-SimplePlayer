@@ -5,13 +5,13 @@ import { join } from 'path'
 import { Server } from 'socket.io';
 let app = express();
 
-let server = app.listen(9990);
+
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: '*' } });
-
+httpServer.listen(9990);
 app.get('/', function (req, res) {
 
-    res.sendFile(join(__dirname, '/serve.html'));
+    res.sendFile(join(__dirname, 'resources/serve.html'));
 
 });
 io.on('connection', (socket) => {
