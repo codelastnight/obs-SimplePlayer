@@ -1,10 +1,13 @@
 <script>
 import { createEventDispatcher } from 'svelte';
 export let songPlaying;
-import frogPlay from './static/play.png'
-import frogPause from './static/pause.png'
-import Fa from 'svelte-fa'
-import {faStepBackward, faStepForward} from '@fortawesome/free-solid-svg-icons'
+import frogPlay from './static/play.png?asset';
+import frogPause from './static/pause.png?asset';
+import Fa from 'svelte-fa';
+import {
+    faStepBackward,
+    faStepForward
+} from '@fortawesome/free-solid-svg-icons';
 const dispatch = createEventDispatcher();
 
 function prevSong() {
@@ -26,7 +29,8 @@ function nextSong() {
         id="prevBtn"
         class="px-6 py-4 hover:bg-slate-700 rounded-full"
         on:focus={(e) => e.target.blur()}
-        on:click={prevSong}>
+        on:click={prevSong}
+    >
         <Fa size="2x" icon={faStepBackward} />
     </button>
     {#if !songPlaying}
@@ -35,8 +39,9 @@ function nextSong() {
             id="playBtn"
             class="btn btn-primary-outline btn-lg hover:scale-110 active:scale-95"
             on:focus={(e) => e.target.blur()}
-            on:click={playMusic}>
-            <img src={frogPlay} alt='play song' class="w-[8rem]" />
+            on:click={playMusic}
+        >
+            <img src={frogPlay} alt="play song" class="w-[8rem]" />
         </button>
     {:else}
         <button
@@ -44,8 +49,9 @@ function nextSong() {
             id="pauseBtn"
             class="btn btn-primary-outline btn-lg hover:scale-110 active:scale-95"
             on:focus={(e) => e.target.blur()}
-            on:click={playMusic}>
-            <img src={frogPause} alt='pause song' class="w-[8rem]" />
+            on:click={playMusic}
+        >
+            <img src={frogPause} alt="pause song" class="w-[8rem]" />
         </button>
     {/if}
     <button
@@ -53,7 +59,8 @@ function nextSong() {
         id="nextBtn"
         class="px-6 py-4 hover:bg-slate-700 rounded-full"
         on:focus={(e) => e.target.blur()}
-        on:click={nextSong}>
+        on:click={nextSong}
+    >
         <Fa size="2x" icon={faStepForward} />
     </button>
 </div>

@@ -16,13 +16,15 @@ const api = {
   handlePlaylistAdd: (callback) => ipcRenderer.on('playlist:add', callback),
   handlePlaylistRemove: (callback) => ipcRenderer.on('playlist:remove', callback),
   handleClosed: () => ipcRenderer.send('closed'),
-  handleScanDir: (path) => ipcRenderer.send('scanDir', path),
+  handleScanDir: (path: string) => ipcRenderer.send('scanDir', path),
   openDir: () => ipcRenderer.send('openDir'),
   logging: (callback) => ipcRenderer.on('logging', callback),
-  fsStatSync: (path) => statSync(path),
-  mmParseFile: (filePath, options) => parseFile(filePath, options),
+  fsStatSync: (path: string) => statSync(path),
+  mmParseFile: (filePath: string, options) => parseFile(filePath, options),
   pathSep: () => sep
 }
+
+export type Api = typeof api;
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise

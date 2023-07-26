@@ -624,17 +624,24 @@ $: if (player) {
 }
 </script>
 
-<style global>
+<style global lang="postcss">
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 body {
-    @apply bg-slate-900;
+    @apply bg-slate-900 h-full text-white;
+}
+html {
+    @apply h-full;
 }
 .progress .progress-bar {
     -webkit-transition: none;
     -o-transition: none;
     transition: none;
+}
+.progress {
+    margin: 2%;
+    height: 10px;
 }
 .toggle-bg:after {
     content: '';

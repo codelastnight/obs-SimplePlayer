@@ -11,7 +11,7 @@ const io = new Server(httpServer, { cors: { origin: '*' } });
 httpServer.listen(9990);
 app.get('/', function (req, res) {
 
-    res.sendFile(join(__dirname, 'resources/serve.html'));
+    res.sendFile(join(__dirname, '../../resources/serve.html'));
 
 });
 io.on('connection', (socket) => {

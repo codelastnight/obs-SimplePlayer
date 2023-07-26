@@ -45,7 +45,7 @@ function changeSong(number) {
         </h1>
         <button
             class="bg-slate-800 hover:bg-slate-900 rounded-full py-2 px-4 flex gap-x-2 items-center"
-            on:click={() => window.electronAPI.openDir()}
+            on:click={() => window.api.openDir()}
         >
             Open folder
             <Fa icon={faFolderOpen} />
@@ -58,11 +58,11 @@ function changeSong(number) {
         </div>
     {:else}
         <div class="h-full overflow-y-scroll divide-y divide-slate-500">
-            {#each list as song, index (song.index)}
+            {#each list as song (song.index)}
                 <!-- svelte-ignore a11y-invalid-attribute -->
                 <button
                     class="w-full cursor-pointer text-white flex gap-x-2 items-center py-4 px-4 text-start hover:bg-slate-600 truncate"
-                    on:click={changeSong(song.index)}
+                    on:click={() => changeSong(song.index)}
                 >
                     {#if current === song.index}
                         <div class="w-[25px]">🐸</div>
