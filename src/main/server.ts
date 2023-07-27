@@ -3,8 +3,16 @@ import { createServer } from 'http';
 
 import { join } from 'path'
 import { Server } from 'socket.io';
-let app = express();
 
+
+process.parentPort.on('message', (e) => {
+    const [port] = e.ports
+    console.log(e.data.message)
+    process.parentPort.postMessage('what is this')
+})
+
+
+let app = express();
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: '*' } });

@@ -21,7 +21,10 @@ const api = {
   logging: (callback) => ipcRenderer.on('logging', callback),
   fsStatSync: (path: string) => statSync(path),
   parseMetadata: (filePath: string) => parseMetadata(filePath),
-  pathSep: () => sep
+  pathSep: () => sep,
+  winClose: () => ipcRenderer.send('win:close'),
+  winMinimize: () => ipcRenderer.send('win:min')
+
 }
 
 export type Api = typeof api;

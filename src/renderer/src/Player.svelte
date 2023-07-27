@@ -19,7 +19,6 @@ import PlaybackControls from './PlaybackControls.svelte';
 export let playlist: ClientSong[];
 export let song: ClientSong;
 export let isPlaying = false;
-
 let timer = '--:--';
 let duration = '--:--';
 

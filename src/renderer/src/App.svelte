@@ -9,6 +9,7 @@ import Settings from './Settings.svelte';
 import Player, { ClientSong } from './Player.svelte';
 import ObsSettings from './OBSSettings.svelte';
 import ObsStatusChip from './ObsStatusChip.svelte';
+import Titlebar from './Titlebar.svelte';
 
 const eAPI = window.api;
 let state = 'init';
@@ -175,9 +176,16 @@ body {
 html {
     @apply h-full;
 }
+main {
+    grid-template-rows: auto 1fr;
+}
 </style>
 
 <main class="grid grid-cols-2 w-full h-full">
+    <div class="col-span-2 h-fit">
+        <Titlebar />
+    </div>
+
     <section class="w-full h-full flex flex-col overflow-y-hidden pr-[10px]">
         {#if loading}
             <div
@@ -199,7 +207,7 @@ html {
     <section
         class="flex flex-col h-full w-full pb-6 py-3 px-3 items-center justify-between"
     >
-        <div class="flex gap-x-2 self-end justify-between w-full">
+        <div class="flex gap-x-2 self-end justify-between w-full items-center">
             <ObsStatusChip {state} />
             <ObsSettings
                 {song}

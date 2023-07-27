@@ -4,7 +4,8 @@ import {
     dialog,
     Menu,
     ipcMain,
-    protocol
+    utilityProcess,
+    MessageChannelMain
 } from 'electron';
 import { autoUpdater } from "electron-updater"
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -20,10 +21,10 @@ const store = new Store();
 import { watch } from 'chokidar';
 
 let files;
+let child;
 
-// launch extra express server
-import { fork } from 'child_process';
-const child = fork(path.resolve(__dirname, 'server.js'), ['server'])
+
+
 let status = 0;
 
 if (is.dev) {
@@ -61,7 +62,7 @@ function createMenu(sort) {
 
     function handleSort(menuItem, browserWindow, event) {
         var items = menuItem.menu.items;
-        win.webContents.send('sort-change', { items: items });
+        win?.webContents.send('sort-change', { items: items });
     }
 
     /**
@@ -204,6 +205,7 @@ function createWindow() {
         width: 1000,
         height: 620,
         icon: __dirname + '/dusk.png',
+        titleBarStyle: 'hidden',
         webPreferences: {
             nodeIntegration: true,
             nodeIntegrationInWorker: true,
@@ -272,23 +274,34 @@ function createWindow() {
     ipcMain.on('dir:open', (e) => {
         openFolderDialog()
     })
+
+
     ipcMain.on('dir:scan', async (e, path) => {
         await scanDir(path);
         watchDir(path)
 
     });
+    ipcMain.on('win:close', (e) => {
+        win?.close()
+    })
+    ipcMain.on('win:min', (e) => {
+        win?.minimize()
+    })
     win.on('close', (e) => {
-        if (status == 0) {
+        if (status === 0) {
             if (win) {
                 e.preventDefault();
                 win.webContents.send('save-settings');
             }
+            child.kill()
         }
     });
 
     // Emitted when the window is closed.
     win.on('closed', () => {
         win = null;
+        const a = child.kill()
+        console.log(a)
     });
     // Open the DevTools if (isDev)
     if (is.dev) win.webContents.openDevTools();
@@ -302,9 +315,19 @@ ipcMain.on('closed', () => {
         app.quit();
     }
 });
+function launchServer() {
+    const { port1, port2 } = new MessageChannelMain()
+    // launch extra express server
+    child = utilityProcess.fork(path.resolve(__dirname, 'server.js'), ['server'])
+    child.postMessage({ message: 'launch server' }, [port1])
+    port1.on('message', (e) => {
+        console.log(e.data)
+    })
+}
 
 app.whenReady().then(() => {
     createWindow();
+    launchServer();
     // protocol.registerFileProtocol('file', (request, callback) => {
     //     const pathname = decodeURI(request.url.replace('file:///', ''));
     //     callback(pathname);
