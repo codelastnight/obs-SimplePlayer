@@ -17,14 +17,17 @@ const connection = {
         'ur disconnected :( restart app?',
         'bg-yellow-600'
     ],
-    ready: [faCircleCheck, 'ready 2 play ', 'bg-emerald-600']
+    ready: [faCircleCheck, 'ready 2 play ', 'bg-emerald-600/50']
 };
 $: connectionText = connection[state][1];
 </script>
 
 <div
-    class={`py-2 px-4 rounded-full flex gap-x-2 items-center ${connection[state][2]} w-fit `}
+    class={`py-1 px-3 rounded-full flex gap-x-2 items-center h-fit  ${connection[state][2]} w-fit `}
 >
-    <Fa icon={connection[state][0]} spin={state === 'init'} />
-    <p>{connectionText}</p>
+    <Fa icon={connection[state][0]} size="sm" spin={state === 'init'} />
+    <p class="text-sm">
+        <span class="text-gray-400 bold">status:</span>
+        {connectionText}
+    </p>
 </div>

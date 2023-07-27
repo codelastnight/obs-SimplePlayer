@@ -5,6 +5,7 @@ import { faFrog, faFolderOpen } from '@fortawesome/free-solid-svg-icons';
 import type { ClientSong } from './Player.svelte';
 let search = '';
 export let playlist: ClientSong[];
+export let song: ClientSong;
 $: list = filterPlaylist(playlist);
 
 let current = 0;
@@ -21,27 +22,44 @@ function filterPlaylist(playerObj) {
     return list;
 }
 function changeSong(number) {
-    current = number;
     dispatch('changeSong', {
         index: number
     });
 }
 </script>
 
-<!-- <input
-    class="form-control"
-    id="search"
-    type="search"
-    bind:value={search}
-    placeholder="Search"
-    aria-label="Search" /> -->
-<div
-    class="flex flex-col h-full w-full pb-3 overflow-hidden divide-y divide-slate-500 bg-slate-700 rounded-2xl h-min-100 h-100 border border-slate-600"
->
-    <div class="flex justify-between items-center px-4 py-4">
+<style lang="postcss">
+.container {
+    @apply flex flex-col h-full w-full pb-3 overflow-hidden;
+    @apply bg-gray-900 divide-y-2 divide-zinc-600 border-purple-300;
+}
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    /* box-shadow: inset 0 0 5px grey;  */
+    @apply bg-gray-600/50;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #60b458;
+    border-radius: 5px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: rgb(65, 189, 137);
+}
+</style>
+
+<div class="container">
+    <div class="flex justify-between items-center px-3 py-3">
         <h1 class="font-bold text-xl flex gap-x-2 items-center">
             <Fa icon={faFrog} />
-            Playlist
+            Track List
         </h1>
         {#if list.length !== 0}
             <button
@@ -68,22 +86,22 @@ function changeSong(number) {
             </div>
         </div>
     {:else}
-        <div class="h-full overflow-y-scroll divide-y divide-slate-500">
-            {#each list as song (song.index)}
+        <div class="h-full overflow-y-scroll divide-y divide-zinc-600">
+            {#each list as track (track.index)}
                 <!-- svelte-ignore a11y-invalid-attribute -->
                 <button
                     class="w-full cursor-pointer text-white flex gap-x-2 items-center py-4 px-4 text-start hover:bg-slate-600 truncate"
-                    on:click={() => changeSong(song.index)}
+                    on:click={() => changeSong(track.index)}
                 >
-                    {#if current === song.index}
+                    {#if song.index === track.index}
                         <div class="w-[25px]">🐸</div>
                     {:else}
                         <div class="w-[25px]" />
                     {/if}
                     <div class="truncate w-full">
-                        <p class="font-md truncate w-full">{song.title}</p>
+                        <p class="font-md truncate w-full">{track.title}</p>
 
-                        <p class="text-sm">{song.artist}</p>
+                        <p class="text-sm">{track.artist}</p>
                     </div>
                 </button>
             {/each}

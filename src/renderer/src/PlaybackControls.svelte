@@ -1,6 +1,6 @@
 <script>
 import { createEventDispatcher } from 'svelte';
-export let songPlaying;
+export let isPlaying;
 import frogPlay from './static/play.png?asset';
 import frogPause from './static/pause.png?asset';
 import Fa from 'svelte-fa';
@@ -12,10 +12,6 @@ const dispatch = createEventDispatcher();
 
 function prevSong() {
     dispatch('prevSong');
-}
-
-function playMusic() {
-    dispatch('playMusic');
 }
 
 function nextSong() {
@@ -33,27 +29,21 @@ function nextSong() {
     >
         <Fa size="2x" icon={faStepBackward} />
     </button>
-    {#if !songPlaying}
-        <button
-            type="button"
-            id="playBtn"
-            class="btn btn-primary-outline btn-lg hover:scale-110 active:scale-95"
-            on:focus={(e) => e.target.blur()}
-            on:click={playMusic}
-        >
+
+    <button
+        type="button"
+        id="playBtn"
+        class="btn btn-primary-outline btn-lg hover:scale-110 active:scale-95"
+        on:focus={(e) => e.target.blur()}
+        on:click={() => (isPlaying = !isPlaying)}
+    >
+        {#if !isPlaying}
             <img src={frogPlay} alt="play song" class="w-[8rem]" />
-        </button>
-    {:else}
-        <button
-            type="button"
-            id="pauseBtn"
-            class="btn btn-primary-outline btn-lg hover:scale-110 active:scale-95"
-            on:focus={(e) => e.target.blur()}
-            on:click={playMusic}
-        >
+        {:else}
             <img src={frogPause} alt="pause song" class="w-[8rem]" />
-        </button>
-    {/if}
+        {/if}
+    </button>
+
     <button
         type="button"
         id="nextBtn"

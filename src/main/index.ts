@@ -69,18 +69,17 @@ function createMenu(sort) {
      * store them in variables inorder to modify them if application is
      * running on Mac.
      */
-    var openFolder = {
-        label: 'Folders',
-        accelerator: 'CommandOrControl+o',
-        click: function () {
-            openFolderDialog();
-        }
-    };
+    // var openFolder = {
+    //     label: 'Folders',
+    //     accelerator: 'CommandOrControl+o',
+    //     click: function () {
+    //         openFolderDialog();
+    //     }
+    // };
 
     var info = {
         label: 'Info',
         click: function () {
-            win.webContents.openDevTools();
             openAboutWindow({
                 product_name: 'OBS simple player :)',
                 homepage: 'https://github.com/codelastnight/obs-SimplePlayer',
@@ -160,18 +159,18 @@ function createMenu(sort) {
     };
 
     if (process.platform === 'darwin') {
-        openFolder = {
-            label: 'Folders',
-            submenu: [
-                {
-                    label: 'Open folder',
-                    accelerator: 'CommandOrControl+o',
-                    click: function () {
-                        openFolderDialog();
-                    }
-                }
-            ]
-        };
+        // openFolder = {
+        //     label: 'Folders',
+        //     submenu: [
+        //         {
+        //             label: 'Open folder',
+        //             accelerator: 'CommandOrControl+o',
+        //             click: function () {
+        //                 openFolderDialog();
+        //             }
+        //         }
+        //     ]
+        // };
 
         info = {
             label: 'Info',
@@ -191,9 +190,9 @@ function createMenu(sort) {
             ]
         };
 
-        createMenuMac(openFolder, info, sort);
+        createMenuMac(info, sort);
     } else {
-        createMenuOther(openFolder, info, sort);
+        createMenuOther(info, sort);
     }
 }
 
@@ -273,8 +272,8 @@ function createWindow() {
     ipcMain.on('dir:open', (e) => {
         openFolderDialog()
     })
-    ipcMain.on('dir:scan', (e, path) => {
-        scanDir(path);
+    ipcMain.on('dir:scan', async (e, path) => {
+        await scanDir(path);
         watchDir(path)
 
     });
@@ -394,12 +393,12 @@ async function watchDir(filePath) {
         .on('unlink', (path: string) => { if (win) win.webContents.send('playlist:remove', path) });
 }
 
-function createMenuOther(openFolder, info, sort) {
-    var menu = Menu.buildFromTemplate([openFolder, sort, info]);
+function createMenuOther(info, sort) {
+    var menu = Menu.buildFromTemplate([sort, info]);
     Menu.setApplicationMenu(menu);
 }
 
-function createMenuMac(openFolder, sort, info) {
+function createMenuMac(sort, info) {
     var menu = Menu.buildFromTemplate([
         {
             label: require('electron').app.getName(),
@@ -410,7 +409,7 @@ function createMenuMac(openFolder, sort, info) {
                 }
             ]
         },
-        openFolder,
+
         sort,
         info
     ]);

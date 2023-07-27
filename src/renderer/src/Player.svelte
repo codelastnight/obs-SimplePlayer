@@ -1,6 +1,9 @@
 <script context="module" lang="ts">
 import type { Song } from '../../main/parseMetadata';
 
+import frog1 from './static/Froge.gif?asset';
+import frog2 from './static/frogmusicnotes.gif?asset';
+
 export interface ClientSong extends Song {
     // name: string;
     howl: Howl;
@@ -10,6 +13,8 @@ export interface ClientSong extends Song {
 
 <script lang="ts">
 import { Howl } from 'howler';
+import TrackDetails from './TrackDetails.svelte';
+import PlaybackControls from './PlaybackControls.svelte';
 
 export let playlist: ClientSong[];
 export let song: ClientSong;
@@ -102,6 +107,19 @@ function skipNext() {
     }
     song = playlist[i];
 }
+function skipPrev() {
+    if (!playlist || !song) return;
+
+    const currentIndex = playlist.findIndex(
+        (item) => item.filePath === song.filePath
+    );
+    let i = currentIndex - 1;
+    if (i < 0) {
+        i = playlist.length - 1;
+    }
+    song = playlist[i];
+}
+
 function seek(time) {
     var sound = song.howl;
     if (!sound) return;
@@ -127,25 +145,44 @@ function seekToTime(event) {
 }
 </style>
 
-<div class="w-full">
-    <div class=" flex justify-between w-full">
-        <div id="timer">{timer}</div>
-        <div id="duration">{duration}</div>
+<div class="flex flex-col h-full w-full justify-between my-8">
+    <div>
+        <TrackDetails {song} />
     </div>
 
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <div
-        class="progress bg-slate-500 overflow-hidden rounded-full"
-        id="seek"
-        bind:clientWidth={offsetWidth}
-        on:click={(e) => seekToTime(e)}
-    >
-        <div
-            class="progress-bar bg-danger bg-emerald-300 h-full rounded-full"
-            role="progressbar"
-            style={`width: ${progressWidth}%`}
-            aria-valuemin={0}
-            aria-valuemax={100}
+    <div class="px-2">
+        <PlaybackControls
+            on:prevSong={skipPrev}
+            on:nextSong={skipNext}
+            bind:isPlaying
         />
+        {#if isPlaying}
+            <div class="flex pointer-events-none absolute">
+                <img src={frog1} class=" left-1/3" alt="frog dance" />
+                <img src={frog2} alt="frog dance 2" />
+            </div>
+        {/if}
+    </div>
+    <div class="w-full">
+        <div class=" flex justify-between w-full">
+            <div id="timer">{timer}</div>
+            <div id="duration">{duration}</div>
+        </div>
+
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <div
+            class="progress bg-slate-500 overflow-hidden rounded-full"
+            id="seek"
+            bind:clientWidth={offsetWidth}
+            on:click={(e) => seekToTime(e)}
+        >
+            <div
+                class="progress-bar bg-danger bg-emerald-300 h-full rounded-full"
+                role="progressbar"
+                style={`width: ${progressWidth}%`}
+                aria-valuemin={0}
+                aria-valuemax={100}
+            />
+        </div>
     </div>
 </div>
