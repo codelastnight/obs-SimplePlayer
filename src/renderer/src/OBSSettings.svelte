@@ -82,7 +82,7 @@ input:checked + .toggle-bg {
 {#if obsVisible}
     <section class="w-[550px] absolute p-4 top-10 right-0 z-50 drop-shadow">
         <div
-            class="bg-slate-700 rounded-xl py-4 px-4 flex flex-col gap-y-2 border border-slate-600"
+            class="bg-neutral-900 rounded-xl py-4 px-4 flex flex-col gap-y-2 border border-slate-800"
         >
             <div class="flex justify-between items-center">
                 <h1 class="text-xl font-bold">OBS settings</h1>

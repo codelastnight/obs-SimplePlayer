@@ -28,19 +28,6 @@ function changeSong(number) {
 </script>
 
 <style lang="postcss">
-.container {
-    @apply flex flex-col h-full w-full pb-3 overflow-hidden;
-    @apply bg-gray-900 divide-y-2 divide-zinc-600 border-purple-300;
-    @apply bg-[url('/logo.jpg')] ;
-    
-    background-image:  linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.5),
-    rgba(0, 0, 0, 0.5)
-  ), url('/logo.jpg')  ;
-    background-size: 200px 100px;
-    background-repeat: repeat;
-}
 ::-webkit-scrollbar {
     width: 10px;
 }
@@ -48,7 +35,7 @@ function changeSong(number) {
 /* Track */
 ::-webkit-scrollbar-track {
     /* box-shadow: inset 0 0 5px grey;  */
-    @apply bg-gray-600/50;
+    @apply bg-amber-200/10;
 }
 
 /* Handle */
@@ -61,6 +48,19 @@ function changeSong(number) {
 ::-webkit-scrollbar-thumb:hover {
     background: rgb(65, 189, 137);
 }
+.container {
+    @apply flex flex-col h-full w-full pb-3 overflow-hidden;
+    @apply  divide-y divide-stone-600 ;
+
+   
+}
+
+.primary {
+    @apply bg-amber-800/30 rounded-full py-2 px-4 flex gap-x-2 items-center;
+}
+.primary:hover {
+    @apply bg-amber-800/75;
+}
 </style>
 
 <div class="container">
@@ -71,7 +71,7 @@ function changeSong(number) {
         </h1>
         {#if list.length !== 0}
             <button
-                class="bg-slate-800 hover:bg-slate-900 rounded-full py-2 px-4 flex gap-x-2 items-center"
+                class="primary"
                 on:click={() => window.api.openDir()}
             >
                 Open folder
@@ -85,7 +85,8 @@ function changeSong(number) {
             <div class="flex flex-col items-center gap-2">
                 <p >click "open folder" 2 get started 🐸</p>
                 <button
-                    class="bg-slate-800 hover:bg-slate-900 rounded-full py-2 px-4 flex gap-x-2 items-center"
+                    class="primary"
+
                     on:click={() => window.api.openDir()}
                 >
                     Open folder
@@ -94,11 +95,11 @@ function changeSong(number) {
             </div>
         </div>
     {:else}
-        <div class="h-full overflow-y-scroll divide-y divide-zinc-600">
+        <div class="h-full overflow-y-auto divide-y divide-stone-600">
             {#each list as track (track?.index)}
                 <!-- svelte-ignore a11y-invalid-attribute -->
                 <button
-                    class="w-full cursor-pointer text-white flex gap-x-2 items-center py-4 px-4 text-start hover:bg-slate-600 truncate"
+                    class="w-full cursor-pointer flex gap-x-2 items-center py-3 px-3 text-start hover:bg-amber-900/10 truncate"
                     on:click={() => changeSong(track?.index)}
                 >
                     {#if song.index === track?.index}
@@ -107,9 +108,9 @@ function changeSong(number) {
                         <div class="w-[25px]" />
                     {/if}
                     <div class="truncate w-full">
-                        <p class="font-md truncate w-full">{track.title}</p>
+                        <p class={`font-md truncate w-full ${song.index === track?.index ?'text-white font-bold ' :'' }`}>{track.title}</p>
 
-                        <p class="text-sm">{track.artist}</p>
+                        <p class="text-sm">{track.artist || '-----'}</p>
                     </div>
                 </button>
             {/each}

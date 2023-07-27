@@ -23,7 +23,8 @@ const api = {
   parseMetadata: (filePath: string) => parseMetadata(filePath),
   pathSep: () => sep,
   winClose: () => ipcRenderer.send('win:close'),
-  winMinimize: () => ipcRenderer.send('win:min')
+  winMinimize: () => ipcRenderer.send('win:min'),
+  getAboutData: (callback) => ipcRenderer.invoke('data:about', callback)
 
 }
 

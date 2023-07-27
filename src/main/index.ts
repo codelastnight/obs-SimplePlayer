@@ -5,7 +5,8 @@ import {
     Menu,
     ipcMain,
     utilityProcess,
-    MessageChannelMain
+    MessageChannelMain,
+    shell
 } from 'electron';
 import { autoUpdater } from "electron-updater"
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -13,7 +14,6 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import * as path from 'path'
 import * as fs from 'fs'
 import { parseMetadataFiles } from './parseMetadata'
-const openAboutWindow = require('about-window').default;
 //const storage = require('electron-storage');
 import Store from 'electron-store';
 const store = new Store();
@@ -81,14 +81,14 @@ function createMenu(sort) {
     var info = {
         label: 'Info',
         click: function () {
-            openAboutWindow({
-                product_name: 'OBS simple player :)',
-                homepage: 'https://github.com/codelastnight/obs-SimplePlayer',
-                copyright: 'arts + crafts',
-                description: 'i love frogs!!!!',
-                license: 'MIT',
-                icon_path: path.join(__dirname, 'logo.png')
-            });
+            // openAboutWindow({
+            //     product_name: 'OBS simple player :)',
+            //     homepage: 'https://github.com/codelastnight/obs-SimplePlayer',
+            //     copyright: 'arts + crafts',
+            //     description: 'i love frogs!!!!',
+            //     license: 'MIT',
+            //     icon_path: path.join(__dirname, 'logo.png')
+            // });
         }
     };
 
@@ -240,6 +240,9 @@ function createWindow() {
 
     win.webContents.once('dom-ready', () => {
         const path = store.get('path');
+
+        launchServer();
+
         return; // temp
         if (path === undefined) return;
         //  logging(path)
@@ -270,7 +273,11 @@ function createWindow() {
 
 
     });
+    ipcMain.handle('data:about', async (e, key) => {
+        const version = app.getVersion()
+        return { version: version };
 
+    });
     ipcMain.on('dir:open', (e) => {
         openFolderDialog()
     })
@@ -296,7 +303,10 @@ function createWindow() {
             child.kill()
         }
     });
-
+    win?.webContents.setWindowOpenHandler(({ url }) => {
+        shell.openExternal(url);
+        return { action: 'deny' };
+    });
     // Emitted when the window is closed.
     win.on('closed', () => {
         win = null;
@@ -336,8 +346,6 @@ app.whenReady().then(() => {
 app.on('browser-window-created', (_, window) => {
     console.log(is.dev)
     optimizer.watchWindowShortcuts(window)
-    launchServer();
-    if (is.dev) win?.webContents.openDevTools();
 
 
 })

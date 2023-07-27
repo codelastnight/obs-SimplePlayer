@@ -1,8 +1,9 @@
 <script lang="ts">
-import { io } from 'socket.io-client';
+import { Socket, io } from 'socket.io-client';
 import { onMount } from 'svelte';
 import { sortDefault, sortByArtist, sortByDate, sortByTitle } from './helpers';
 import { Howler } from 'howler';
+import { state } from './store';
 
 import Playlist from './Playlist.svelte';
 import Settings from './Settings.svelte';
@@ -12,8 +13,8 @@ import ObsStatusChip from './ObsStatusChip.svelte';
 import Titlebar from './Titlebar.svelte';
 
 const eAPI = window.api;
-let state = 'init';
-let socket;
+
+let socket:Socket;
 
 let playlist: ClientSong[];
 let song: ClientSong;
@@ -35,12 +36,14 @@ onMount(() => {
         socket.emit('whoiam', 'sender');
     });
     socket.on('whouare', function () {
-        state = 'ready';
+        state.set( 'ready') ;
     });
     socket.on('disconnect', function () {
-        state = 'disconnect';
+        state.set( 'disconnect');
     });
-
+    socket.on('connect_error',function (){
+        state.set( 'disconnect');
+    })
     socket.on('ask4update', function (msg) {
         if (msg === 'pls') {
             updateOBS();
@@ -89,7 +92,7 @@ eAPI.handleSortChange((_, arg) => {
 
     song = playlist.find((x) => x.index == i);
 });
-eAPI.handleSaveSetting((_, data) => {
+eAPI.handleSaveSetting((_) => {
     eAPI.dataSet({
         key: 'settings',
         value: { mute: mute, volume: slider }
@@ -171,15 +174,10 @@ $: {
 @tailwind components;
 @tailwind utilities;
 body {
-    @apply bg-zinc-950 h-full text-purple-100;
+    @apply bg-violet-950 h-full text-stone-100;
    
-    background-image:  linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.3),
-    rgba(0, 0, 0, 0.3)
-  ), url('/Untitled.jpg')  ;
-    background-size: 300px 200px;
-    background-repeat: repeat;
+    background: #161d13;
+ 
 }
 html {
     @apply h-full;
@@ -191,7 +189,7 @@ main {
 
 <main class="grid grid-cols-2 w-full h-full">
     <div class="col-span-2 h-fit">
-        <Titlebar />
+        <Titlebar  />
     </div>
 
     <section class="w-full h-full flex flex-col overflow-y-hidden pr-[10px]">
@@ -216,7 +214,6 @@ main {
         class="flex flex-col h-full w-full pb-6 py-3 px-3 items-center justify-between"
     >
         <div class="flex gap-x-2 self-end justify-between w-full items-center">
-            <ObsStatusChip {state} />
             <ObsSettings
                 {song}
                 on:update={(e) => (obsSettingData = e.detail)}
