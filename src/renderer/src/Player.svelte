@@ -1,8 +1,7 @@
 <script context="module" lang="ts">
 import type { Song } from '../../main/parseMetadata';
 
-import frog1 from './static/Froge.gif?asset';
-import frog2 from './static/frogmusicnotes.gif?asset';
+
 
 export interface ClientSong extends Song {
     // name: string;
@@ -157,8 +156,8 @@ function seekToTime(event) {
         />
         {#if isPlaying}
             <div class="flex pointer-events-none absolute">
-                <img src={frog1} class=" left-1/3" alt="frog dance" />
-                <img src={frog2} alt="frog dance 2" />
+                <img src='/Froge.gif' class=" left-1/3" alt="frog dance" />
+                <img src='frogmusicnotes.gif' alt="frog dance 2" />
             </div>
         {/if}
     </div>

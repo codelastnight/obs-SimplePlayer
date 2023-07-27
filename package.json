@@ -1,11 +1,11 @@
 {
-  "name": "obs-simpleplayer",
-  "version": "0.3.2",
+  "name": "frog-player",
+  "version": "0.4.0",
   "homepage": "",
-  "description": "simple music player meant for obs streams",
+  "description": "frogfest software",
   "repository": {
     "type": "git",
-    "url": "https://github.com/codelastnight/obs-SimplePlayer.git"
+    "url": "https://github.com/studioartsandcrafts/frogPlayer.git"
   },
   "main": "./out/main/index.js",
   "scripts": {
@@ -25,7 +25,7 @@
       {
         "provider": "github",
         "owner": "codelastnight",
-        "repo": "obs-SimplePlayer"
+        "repo": "frogPlayer"
       }
     ],
     "dmg": {

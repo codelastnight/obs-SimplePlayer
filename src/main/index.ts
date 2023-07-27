@@ -304,7 +304,6 @@ function createWindow() {
         console.log(a)
     });
     // Open the DevTools if (isDev)
-    if (is.dev) win.webContents.openDevTools();
 }
 
 ipcMain.on('closed', () => {
@@ -327,13 +326,21 @@ function launchServer() {
 
 app.whenReady().then(() => {
     createWindow();
-    launchServer();
+
     // protocol.registerFileProtocol('file', (request, callback) => {
     //     const pathname = decodeURI(request.url.replace('file:///', ''));
     //     callback(pathname);
     // });
-});
 
+});
+app.on('browser-window-created', (_, window) => {
+    console.log(is.dev)
+    optimizer.watchWindowShortcuts(window)
+    launchServer();
+    if (is.dev) win?.webContents.openDevTools();
+
+
+})
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {

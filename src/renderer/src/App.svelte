@@ -172,6 +172,14 @@ $: {
 @tailwind utilities;
 body {
     @apply bg-zinc-950 h-full text-purple-100;
+   
+    background-image:  linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.3),
+    rgba(0, 0, 0, 0.3)
+  ), url('/Untitled.jpg')  ;
+    background-size: 300px 200px;
+    background-repeat: repeat;
 }
 html {
     @apply h-full;

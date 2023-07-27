@@ -27,7 +27,7 @@ $: connectionText = connection[state][1];
 >
     <Fa icon={connection[state][0]} size="sm" spin={state === 'init'} />
     <p class="text-sm">
-        <span class="text-white/60 bold">status:</span>
+        <span class="text-white/75 bold">status:</span>
         {connectionText}
     </p>
 </div>

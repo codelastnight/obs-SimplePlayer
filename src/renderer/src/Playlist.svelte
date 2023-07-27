@@ -8,7 +8,6 @@ export let playlist: ClientSong[];
 export let song: ClientSong;
 $: list = filterPlaylist(playlist);
 
-let current = 0;
 const dispatch = createEventDispatcher();
 function filterPlaylist(playerObj) {
     if (!playerObj) return [];
@@ -32,6 +31,15 @@ function changeSong(number) {
 .container {
     @apply flex flex-col h-full w-full pb-3 overflow-hidden;
     @apply bg-gray-900 divide-y-2 divide-zinc-600 border-purple-300;
+    @apply bg-[url('/logo.jpg')] ;
+    
+    background-image:  linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.5),
+    rgba(0, 0, 0, 0.5)
+  ), url('/logo.jpg')  ;
+    background-size: 200px 100px;
+    background-repeat: repeat;
 }
 ::-webkit-scrollbar {
     width: 10px;
@@ -74,8 +82,8 @@ function changeSong(number) {
 
     {#if list.length === 0}
         <div class="grid place-items-center w-full h-1/2">
-            <div class="flex flex-col items-center gap-xs">
-                <p>click "open folder" 2 get started 🐸</p>
+            <div class="flex flex-col items-center gap-2">
+                <p >click "open folder" 2 get started 🐸</p>
                 <button
                     class="bg-slate-800 hover:bg-slate-900 rounded-full py-2 px-4 flex gap-x-2 items-center"
                     on:click={() => window.api.openDir()}
@@ -87,13 +95,13 @@ function changeSong(number) {
         </div>
     {:else}
         <div class="h-full overflow-y-scroll divide-y divide-zinc-600">
-            {#each list as track (track.index)}
+            {#each list as track (track?.index)}
                 <!-- svelte-ignore a11y-invalid-attribute -->
                 <button
                     class="w-full cursor-pointer text-white flex gap-x-2 items-center py-4 px-4 text-start hover:bg-slate-600 truncate"
-                    on:click={() => changeSong(track.index)}
+                    on:click={() => changeSong(track?.index)}
                 >
-                    {#if song.index === track.index}
+                    {#if song.index === track?.index}
                         <div class="w-[25px]">🐸</div>
                     {:else}
                         <div class="w-[25px]" />
