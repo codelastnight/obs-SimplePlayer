@@ -20,49 +20,6 @@
     "package": "electron-forge package",
     "make": "electron-forge make"
   },
-  "build": {
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "codelastnight",
-        "repo": "frogPlayer"
-      }
-    ],
-    "dmg": {
-      "contents": [
-        {
-          "x": 120,
-          "y": 220
-        },
-        {
-          "x": 400,
-          "y": 220,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ]
-    },
-    "mac": {
-      "icon": "build/icon.icns",
-      "target": "pkg"
-    },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
-      "category": "Utility",
-      "maintainer": "last night",
-      "icon": "build"
-    },
-    "win": {
-      "icon": "build/icon.ico",
-      "target": [
-        "portable"
-      ]
-    },
-    "portable": {}
-  },
   "author": "last night, Aveek Saha",
   "license": "MIT",
   "devDependencies": {
