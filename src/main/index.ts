@@ -4,30 +4,29 @@ import {
     dialog,
     Menu,
     ipcMain,
+    protocol
 } from 'electron';
-const { autoUpdater } = require("electron-updater")
+import { autoUpdater } from "electron-updater"
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 
 import * as path from 'path'
 import * as fs from 'fs'
+import { parseMetadataFiles } from './parseMetadata'
 const openAboutWindow = require('about-window').default;
-const isDev = require('electron-is-dev');
 //const storage = require('electron-storage');
-const Store = require('electron-store');
+import Store from 'electron-store';
 const store = new Store();
 
-const mm = require('music-metadata');
-const chokidar = require('chokidar');
+import { watch } from 'chokidar';
 
-let files = null;
+let files;
 
 // launch extra express server
 import { fork } from 'child_process';
 const child = fork(path.resolve(__dirname, 'server.js'), ['server'])
 let status = 0;
-let watcher;
 
-if (isDev) {
+if (is.dev) {
     // require('electron-reload')(__dirname, {
     //     electron: require(`./node_modules/electron`)
     // });
@@ -38,19 +37,19 @@ if (isDev) {
     // autoUpdater.setFeedURL({ url });
 }
 
-let win;
+
 
 // const logging = (info) => {
 //     win.webContents.send('logging',info)
 //     return;
 // }
 
-function createMenu(theme, sort) {
+function createMenu(sort) {
     function handleClick(menuItem, browserWindow, event) {
-        win.webContents.send('theme-change', {
-            theme: menuItem.label.toLowerCase()
-        });
-        store.set('theme', { theme: menuItem.label.toLowerCase() })
+        // win.webContents.send('theme-change', {
+        //     theme: menuItem.label.toLowerCase()
+        // });
+        //store.set('theme', { theme: menuItem.label.toLowerCase() })
         // storage.set(
         //     'theme',
         //     { theme: menuItem.label.toLowerCase() },
@@ -93,29 +92,29 @@ function createMenu(theme, sort) {
         }
     };
 
-    var theme = {
-        label: 'Theme',
-        submenu: [
-            {
-                label: 'Light',
-                type: 'radio',
-                click: handleClick,
-                checked: theme.light
-            },
-            {
-                label: 'Dark',
-                type: 'radio',
-                click: handleClick,
-                checked: theme.dark
-            },
-            {
-                label: 'Disco',
-                type: 'radio',
-                click: handleClick,
-                checked: theme.disco
-            }
-        ]
-    };
+    // var theme = {
+    //     label: 'Theme',
+    //     submenu: [
+    //         {
+    //             label: 'Light',
+    //             type: 'radio',
+    //             click: handleClick,
+    //             checked: theme.light
+    //         },
+    //         {
+    //             label: 'Dark',
+    //             type: 'radio',
+    //             click: handleClick,
+    //             checked: theme.dark
+    //         },
+    //         {
+    //             label: 'Disco',
+    //             type: 'radio',
+    //             click: handleClick,
+    //             checked: theme.disco
+    //         }
+    //     ]
+    // };
 
     var sort = {
         label: 'Sort',
@@ -192,11 +191,14 @@ function createMenu(theme, sort) {
             ]
         };
 
-        createMenuMac(openFolder, theme, info, sort);
+        createMenuMac(openFolder, info, sort);
     } else {
-        createMenuOther(openFolder, theme, info, sort);
+        createMenuOther(openFolder, info, sort);
     }
 }
+
+let win: BrowserWindow | null;
+
 function createWindow() {
     // Create the browser window.
     win = new BrowserWindow({
@@ -204,18 +206,17 @@ function createWindow() {
         height: 620,
         icon: __dirname + '/dusk.png',
         webPreferences: {
-            //nodeIntegration: true,
+            nodeIntegration: true,
             nodeIntegrationInWorker: true,
             preload: path.join(__dirname, '../preload/index.js'),
-            enableRemoteModule: true,
+            // enableRemoteModule: true,
             backgroundThrottling: false,
-            webviewTag: true
+            webviewTag: true,
+            webSecurity: false // temporary. figure out custom protocal to secure app
         }
     });
 
-    var light = false;
-    var dark = false;
-    var disco = false;
+
 
     var asc = true;
     var dec = false;
@@ -224,28 +225,12 @@ function createWindow() {
     var artistName = false;
     var dateAdded = false;
 
-    var theme = { light, dark, disco };
+
     var sort = { order: { asc, dec }, by: { songName, artistName, dateAdded } };
 
-    // storage.isPathExists('theme', function (hasKey) {
-    //     if (hasKey) {
-    //         storage.get('theme', function (error, data) {
-    //             if (error) throw error;
+    createMenu(sort);
 
-    //             if (data.theme == 'light') theme.light = true;
-    //             else if (data.theme == 'disco') theme.disco = true;
-    //             else theme.dark = true;
-
-    //             createMenu(theme, sort);
-    //         });
-    //     } else {
-    //         dark = true;
-    //         createMenu(theme, sort);
-    //     }
-    // });
-    dark = true;
-    createMenu(theme, sort);
-    // and load the index.html of the app.
+    // for HMR from electron-vite
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
         win.loadURL(process.env['ELECTRON_RENDERER_URL'])
     } else {
@@ -259,54 +244,21 @@ function createWindow() {
         //  logging(path)
         scanDir(path)
 
-        // storage.isPathExists('path', function (isDoes) {
-        //     if (isDoes) {
-        //         storage.get('path', function (error, data) {
-        //             if (error) throw (error)
-        //             else {
-        //                logging(data)
-        //                 scanDir(data)
-        //             }
 
-        //         });
-        //     }
-        // });
 
     });
 
-    // win.loadURL(
-    //     url.format({
-    //         pathname:,
-    //         protocol: 'file:',
-    //         slashes: true
-    //     })
-    // );
-    ipcMain.on('openDir', (e) => {
-        openFolderDialog()
-    })
+
+
     ipcMain.on('data:set', (e, data) => {
         let combine = {}
         const combinedData = store.get(data.key)
-        if (combinedData == undefined) return;
+        if (combinedData == undefined) return false;
 
         combine = combinedData;
 
         store.set(data.key, { ...combine, ...data.value })
-        // storage.isPathExists(data.key, function (isDoes) {
-        //     if (isDoes) {
-        //         storage.get(key, function (error, combinedata) {
-        //             if (error) throw (error)
-        //             else combine = combinedata
-        //         });
-        //     }
-        // });
-        // storage.set(
-        //     data.key,
-        //     { ...combine, ...data.value },
-        //     function (error) {
-        //         if (error) return false;
-        //     }
-        // );
+
         return true
     })
     ipcMain.handle('data:get', async (e, key) => {
@@ -315,23 +267,16 @@ function createWindow() {
 
         return { type: 'ok', data: data };
 
-        // storage.isPathExists(key, function (isDoes) {
-        //     if (isDoes) {
-        //         storage.get(key, function (error, data) {
 
-        //             if (error) return { type: 'error', data: null }
-        //             else return { type: 'ok', data: data }
-        //         });
-        //     }
-
-
-        // });
-        // return { type: 'unsaved', data: null }
     });
 
-
-    ipcMain.on('scanDir', (e, path) => {
+    ipcMain.on('dir:open', (e) => {
+        openFolderDialog()
+    })
+    ipcMain.on('dir:scan', (e, path) => {
         scanDir(path);
+        watchDir(path)
+
     });
     win.on('close', (e) => {
         if (status == 0) {
@@ -346,21 +291,25 @@ function createWindow() {
     win.on('closed', () => {
         win = null;
     });
-    // Open the DevTools.if (isDev)
-    win.webContents.openDevTools();
+    // Open the DevTools if (isDev)
+    if (is.dev) win.webContents.openDevTools();
 }
 
 ipcMain.on('closed', () => {
     status = 1;
-    mainWindow = null;
+    win = null;
+
     if (process.platform !== 'darwin') {
         app.quit();
     }
 });
 
-
 app.whenReady().then(() => {
     createWindow();
+    // protocol.registerFileProtocol('file', (request, callback) => {
+    //     const pathname = decodeURI(request.url.replace('file:///', ''));
+    //     callback(pathname);
+    // });
 });
 
 // Quit when all windows are closed.
@@ -377,30 +326,21 @@ app.on('activate', () => {
 });
 
 async function openFolderDialog() {
-    await dialog.showOpenDialog(win, { properties: ['openDirectory'] }).then(
-        (result) => {
-            const filePath = result.filePaths[0];
-            if (filePath) {
-                store.set('path', filePath);
+    if (win === null) return;
+    const result = await dialog.showOpenDialog(win, { properties: ['openDirectory'] }).catch((error) => { throw error })
 
-                // storage.set('path',  filePath , function (error) {
-                //     if (error) throw error;
-                // });
+    const filePath = result.filePaths[0];
+    if (filePath) {
+        store.set('path', filePath);
 
-                scanDir(filePath);
-            }
-        },
-        (error) => {
-            throw error;
-        }
-    );
+        await scanDir(filePath);
+        watchDir(filePath)
+    }
+
 }
 
-
-
-var walkSync = function (dir, filelist = []) {
+function walkSync(dir: string, filelist: string[] = []) {
     files = fs.readdirSync(dir);
-    filelist = filelist || [];
     files.forEach(function (file) {
         if (fs.statSync(path.join(dir, file)).isDirectory()) {
             filelist = walkSync(path.join(dir, file), filelist);
@@ -420,75 +360,46 @@ var walkSync = function (dir, filelist = []) {
     });
     return filelist;
 };
-async function parseFiles(audioFiles) {
-    var titles = [];
 
-    // loading = true;
+import type { Song } from './parseMetadata'
 
-    for (const audioFile of audioFiles) {
-        // await will ensure the metadata parsing is completed before we move on to the next file
-        const metadata = await mm.parseFile(audioFile, { skipCovers: true })
-            .catch((err) => { console.error(err); return [] });
-        const stats = fs.statSync(audioFile);
-        var data = {};
-        var title = metadata.common.title;
-        var artist = metadata.common.artist;
-        if (title) data.title = metadata.common.title;
-        else data.title = audioFile.split(path.sep).slice(-1)[0];
-        if (artist) data.artist = metadata.common.artist;
-        else data.artist = '';
-        data.modDate = stats.mtime;
-
-        titles.push(data);
-    }
-    //loading = false;
-
-    return titles;
-}
-async function parseFile(audioFile) {
-    // await will ensure the metadata parsing is completed before we move on to the next file
-    const metadata = await mm.parseFile(audioFile, { skipCovers: true })
-        .catch((err) => { console.error(err); return [] });
-    const stats = fs.statSync(audioFile);
-    var data = {};
-    var title = metadata.common.title;
-    var artist = metadata.common.artist;
-    if (title) data.title = metadata.common.title;
-    else data.title = audioFile.split(path.sep).slice(-1)[0];
-    if (artist) data.artist = metadata.common.artist;
-    else data.artist = '';
-    data.modDate = stats.mtime;
-    return data;
+export interface fileData {
+    path: string;
+    songList: Song[]
 }
 async function scanDir(filePath) {
-    if (!filePath || filePath[0] == 'undefined') return;
-    watcher = chokidar.watch(filePath, {
+    if (!filePath || filePath[0] === 'undefined' || !win) return;
+
+
+    const arr = walkSync(filePath);
+    const names = await parseMetadataFiles(arr);
+    const arg = {
+
+        path: filePath,
+        songList: names
+    }
+    win.webContents.send('files:selected', arg);
+}
+
+let watcher;
+
+async function watchDir(filePath) {
+    watcher = watch(filePath, {
         ignored: /[\/\\]\./,
         persistent: true
     });
 
-    var arr = walkSync(filePath);
-    var arg = {};
-    var names = await parseFiles(arr);
-
-    arg.files = arr;
-    arg.path = filePath;
-    arg.names = names;
-
-    win.webContents.send('selected-files', arg);
-
     watcher
-        .on('add', (path) => win.webContents.send('playlist:add', path))
-        .on('unlink', (path) => win.webContents.send('playlist:remove', path));
-
+        .on('add', (path: string) => { if (win) win.webContents.send('playlist:add', path) })
+        .on('unlink', (path: string) => { if (win) win.webContents.send('playlist:remove', path) });
 }
 
-function createMenuOther(openFolder, theme, info, sort) {
+function createMenuOther(openFolder, info, sort) {
     var menu = Menu.buildFromTemplate([openFolder, sort, info]);
     Menu.setApplicationMenu(menu);
 }
 
-function createMenuMac(openFolder, theme, sort, info) {
+function createMenuMac(openFolder, sort, info) {
     var menu = Menu.buildFromTemplate([
         {
             label: require('electron').app.getName(),
@@ -500,7 +411,6 @@ function createMenuMac(openFolder, theme, sort, info) {
             ]
         },
         openFolder,
-        theme,
         sort,
         info
     ]);
