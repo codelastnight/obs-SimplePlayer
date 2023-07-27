@@ -20,6 +20,9 @@ dependencies:
   chokidar:
     specifier: ^3.5.3
     version: 3.5.3
+  electron-log:
+    specifier: ^4.4.8
+    version: 4.4.8
   electron-store:
     specifier: ^8.1.0
     version: 8.1.0
@@ -1662,6 +1665,10 @@ packages:
     transitivePeerDependencies:
       - supports-color
     dev: true
+
+  /electron-log@4.4.8:
+    resolution: {integrity: sha512-QQ4GvrXO+HkgqqEOYbi+DHL7hj5JM+nHi/j+qrN9zeeXVKy8ZABgbu4CnG+BBqDZ2+tbeq9tUC4DZfIWFU5AZA==}
+    dev: false
 
   /electron-publish@24.5.0:
     resolution: {integrity: sha512-zwo70suH15L15B4ZWNDoEg27HIYoPsGJUF7xevLJLSI7JUPC8l2yLBdLGwqueJ5XkDL7ucYyRZzxJVR8ElV9BA==}

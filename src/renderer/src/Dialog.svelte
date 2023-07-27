@@ -7,6 +7,7 @@
     export let title = ''
     export let fun = false;
     
+    //export let isOpen
 </script>
 <style lang="postcss">
     dialog {
@@ -27,7 +28,7 @@
     background-repeat: repeat;
     }
 </style>
-<dialog bind:this={dialog} on:close class={`${fun ? 'fun' : '' }`}>
+<dialog bind:this={dialog} on:close class={`${fun ? 'fun' : '' }`} >
     <header class="flex justify-between items-center ">
         <p>{title}</p>
         <button

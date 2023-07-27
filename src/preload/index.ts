@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import { parseMetadata } from '../main/parseMetadata';
-import type { fileData } from '../main/index'
+import type { fileData, updateData } from '../main/index'
 //const { contextBridge, ipcRenderer } = require('electron')
 import { statSync } from 'fs';
 import { sep } from 'path'
@@ -24,8 +24,9 @@ const api = {
   pathSep: () => sep,
   winClose: () => ipcRenderer.send('win:close'),
   winMinimize: () => ipcRenderer.send('win:min'),
-  getAboutData: (callback) => ipcRenderer.invoke('data:about', callback)
-
+  getAboutData: (callback) => ipcRenderer.invoke('data:about', callback),
+  checkAppUpdate: () => ipcRenderer.send('data:checkUpdate'),
+  onAppUpdate: (callback: (e, arg: updateData) => void) => ipcRenderer.on('data:update', callback)
 }
 
 export type Api = typeof api;

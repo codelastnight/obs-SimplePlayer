@@ -1,22 +1,40 @@
 <script>
 import Fa from 'svelte-fa';
-import { faClose, faMinus } from '@fortawesome/free-solid-svg-icons';
+import { faClose, faMinus, faCircleNotch } from '@fortawesome/free-solid-svg-icons';
 import Dialog from './Dialog.svelte';
 import Marquee from 'svelte-fast-marquee';
 import {onMount} from 'svelte'
 import ObsStatusChip from './ObsStatusChip.svelte';
- let aboutData
 
+let version
+let dialog
+let updateStatus = 'none'
 
+const updateState = {
+    'none': 'check for updates',
+    'checking': 'looking for new update...',
+    'available': 'update found! downloading...',
+    'downloaded': 'updated downloaded. restart to install',
+    'unavailable': 'no updates found',
+    'error':'error checking for update'
+}
+window.api.onAppUpdate((e,arg)=>{
+    updateStatus = arg.type
+
+})
 onMount(()=>{
     async function getAboutData(){
-        aboutData = await window.api.getAboutData();
-        console.log(aboutData)
+        const aboutData = await window.api.getAboutData();
+        version = aboutData?.version || ''
     }
     getAboutData()
 })
 
-let dialog
+
+function checkAppUpdate() {
+    window.api.checkAppUpdate();
+    updateStatus = 'checking'
+}
 </script>
 
 <style lang="postcss">
@@ -29,7 +47,9 @@ button {
     @apply px-2 py-1 rounded ;
     -webkit-app-region: no-drag;
 }
-
+.update {
+    @apply px-3 py-1 rounded-full flex items-center gap-1;
+}
 </style>
 
 <header>
@@ -41,7 +61,7 @@ button {
         >
            <p>about</p>
         </button>
-        <p class="text-white/75">v{aboutData?.version || ''}</p>
+        <p class="text-white/75">v{version}</p>
 
     </div>
 
@@ -70,7 +90,7 @@ button {
         </button>
     </div>
 </header>
-<Dialog bind:dialog fun >
+<Dialog bind:dialog fun on:close={()=>updateStatus='none'}>
     <div class="flex flex-col items-center h-[50vh] w-[50vw] justify-between">
      
     <div class="flex flex-col items-center">
@@ -78,10 +98,21 @@ button {
         <h1 class="font-bold text-2xl mb-3">
             Frog Player :3        
             <span class="text-white/75 font-normal text-xl">
-                v{aboutData?.version || ''}
+                v{version}
             </span>
         </h1>
         <p>i love frogs!!!!</p>
+        <button
+        type="button"
+        class="bg-amber-700 hover:bg-neutral-900  disabled:opacity-80 disabled:pointer-events-none update"
+        on:click={checkAppUpdate}
+        disabled={updateStatus !== 'none'}
+        >
+        {#if updateStatus === 'checking' || updateStatus === 'available'}
+            <Fa icon={faCircleNotch} spin />
+        {/if}
+       <p>{updateState[updateStatus]}</p>
+    </button>
     </div>
         
     <div class="flex flex-col items-center w-full">

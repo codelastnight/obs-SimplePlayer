@@ -9,7 +9,6 @@ import Playlist from './Playlist.svelte';
 import Settings from './Settings.svelte';
 import Player, { ClientSong } from './Player.svelte';
 import ObsSettings from './OBSSettings.svelte';
-import ObsStatusChip from './ObsStatusChip.svelte';
 import Titlebar from './Titlebar.svelte';
 
 const eAPI = window.api;

@@ -20,10 +20,7 @@ const store = new Store();
 
 import { watch } from 'chokidar';
 
-let files;
 let child;
-
-
 
 let status = 0;
 
@@ -294,6 +291,9 @@ function createWindow() {
     ipcMain.on('win:min', (e) => {
         win?.minimize()
     })
+    ipcMain.on('data:checkUpdate', (e) => {
+        checkForUpdate()
+    })
     win.on('close', (e) => {
         if (status === 0) {
             if (win) {
@@ -334,9 +334,30 @@ function launchServer() {
     })
 }
 
+function checkForUpdate() {
+    autoUpdater.logger = require("electron-log")
+    autoUpdater.checkForUpdatesAndNotify();
+
+}
+export interface updateData {
+    type: 'available' | 'error' | 'downloaded' | 'unavailable' | 'none'
+}
+autoUpdater.on('update-available', () => {
+    win?.webContents.send('data:update', { type: 'available' } as updateData);
+});
+autoUpdater.on('error', () => {
+    win?.webContents.send('data:update', { type: 'error' } as updateData);
+});
+autoUpdater.on('update-downloaded', () => {
+    win?.webContents.send('data:update', { type: 'downloaded' } as updateData);
+});
+autoUpdater.on('update-not-available', () => {
+    win?.webContents.send('data:update', { type: 'unavailable' } as updateData);
+});
+
 app.whenReady().then(() => {
     createWindow();
-    autoUpdater.checkForUpdatesAndNotify();
+    checkForUpdate();
     // protocol.registerFileProtocol('file', (request, callback) => {
     //     const pathname = decodeURI(request.url.replace('file:///', ''));
     //     callback(pathname);
@@ -377,7 +398,7 @@ async function openFolderDialog() {
 }
 
 function walkSync(dir: string, filelist: string[] = []) {
-    files = fs.readdirSync(dir);
+    const files = fs.readdirSync(dir);
     files.forEach(function (file) {
         if (fs.statSync(path.join(dir, file)).isDirectory()) {
             filelist = walkSync(path.join(dir, file), filelist);
