@@ -11,14 +11,16 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
-afterSign: build/notarize.js
+# afterSign: build/notarize.js
 win:
   executableName: obs-simpleplayer
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
-  createDesktopShortcut: always
+  publish:
+    - provider: github
+      protocol: https
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
@@ -36,6 +38,4 @@ linux:
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
-publish:
-  provider: generic
-  url: https://example.com/auto-updates
+

@@ -180,12 +180,12 @@ function createMenu(sort) {
                     label: 'Show info',
 
                     click: function () {
-                        openAboutWindow({
-                            product_name: 'OBS simple player :)',
-                            homepage: 'https://github.com/codelastnight/obs-SimplePlayer',
-                            copyright: 'arts + crafts',
-                            icon_path: path.join(__dirname, 'logo.png')
-                        });
+                        // openAboutWindow({
+                        //     product_name: 'OBS simple player :)',
+                        //     homepage: 'https://github.com/codelastnight/obs-SimplePlayer',
+                        //     copyright: 'arts + crafts',
+                        //     icon_path: path.join(__dirname, 'logo.png')
+                        // });
                     }
                 }
             ]
@@ -336,7 +336,7 @@ function launchServer() {
 
 app.whenReady().then(() => {
     createWindow();
-
+    autoUpdater.checkForUpdatesAndNotify();
     // protocol.registerFileProtocol('file', (request, callback) => {
     //     const pathname = decodeURI(request.url.replace('file:///', ''));
     //     callback(pathname);
