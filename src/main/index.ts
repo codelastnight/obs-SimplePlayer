@@ -2,7 +2,6 @@ import {
     app,
     BrowserWindow,
     dialog,
-    Menu,
     ipcMain,
     utilityProcess,
     MessageChannelMain,
@@ -14,186 +13,46 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import * as path from 'path'
 import * as fs from 'fs'
 import { parseMetadataFiles } from './parseMetadata'
-//const storage = require('electron-storage');
+import { watch } from 'chokidar';
 import Store from 'electron-store';
+
 const store = new Store();
 
-import { watch } from 'chokidar';
-
-let child;
-
 let status = 0;
-
-if (is.dev) {
-    // require('electron-reload')(__dirname, {
-    //     electron: require(`./node_modules/electron`)
-    // });
-} else {
-    // const server = 'http://hazel-duskplayer.vercel.app/';
-    // const url = `${server}/update/${process.platform}/${app.getVersion()}`;
-
-    // autoUpdater.setFeedURL({ url });
+/// launch another server on separate process
+let child;
+function launchServer() {
+    const { port1, port2 } = new MessageChannelMain()
+    // launch extra express server
+    child = utilityProcess.fork(path.resolve(__dirname, 'server.js'), ['server'])
+    child.postMessage({ message: 'launch server' }, [port1])
+    port1.on('message', (e) => {
+        console.log(e.data)
+    })
 }
+/// auto update functions
+function checkForUpdate() {
+    autoUpdater.logger = require("electron-log")
+    autoUpdater.checkForUpdatesAndNotify();
 
-
-
-// const logging = (info) => {
-//     win.webContents.send('logging',info)
-//     return;
-// }
-
-function createMenu(sort) {
-    function handleClick(menuItem, browserWindow, event) {
-        // win.webContents.send('theme-change', {
-        //     theme: menuItem.label.toLowerCase()
-        // });
-        //store.set('theme', { theme: menuItem.label.toLowerCase() })
-        // storage.set(
-        //     'theme',
-        //     { theme: menuItem.label.toLowerCase() },
-        //     function (error) {
-        //         if (error) throw error;
-        //     }
-        // );
-    }
-
-    function handleSort(menuItem, browserWindow, event) {
-        var items = menuItem.menu.items;
-        win?.webContents.send('sort-change', { items: items });
-    }
-
-    /**
-     * Because menu buttons on MacOS *require* at least one submenu,
-     * store them in variables inorder to modify them if application is
-     * running on Mac.
-     */
-    // var openFolder = {
-    //     label: 'Folders',
-    //     accelerator: 'CommandOrControl+o',
-    //     click: function () {
-    //         openFolderDialog();
-    //     }
-    // };
-
-    var info = {
-        label: 'Info',
-        click: function () {
-            // openAboutWindow({
-            //     product_name: 'OBS simple player :)',
-            //     homepage: 'https://github.com/codelastnight/obs-SimplePlayer',
-            //     copyright: 'arts + crafts',
-            //     description: 'i love frogs!!!!',
-            //     license: 'MIT',
-            //     icon_path: path.join(__dirname, 'logo.png')
-            // });
-        }
-    };
-
-    // var theme = {
-    //     label: 'Theme',
-    //     submenu: [
-    //         {
-    //             label: 'Light',
-    //             type: 'radio',
-    //             click: handleClick,
-    //             checked: theme.light
-    //         },
-    //         {
-    //             label: 'Dark',
-    //             type: 'radio',
-    //             click: handleClick,
-    //             checked: theme.dark
-    //         },
-    //         {
-    //             label: 'Disco',
-    //             type: 'radio',
-    //             click: handleClick,
-    //             checked: theme.disco
-    //         }
-    //     ]
-    // };
-
-    var sort = {
-        label: 'Sort',
-        submenu: [
-            {
-                label: 'Date added',
-                type: 'radio',
-                click: handleSort,
-                checked: sort.by.dateAdded
-            },
-            {
-                label: 'Song name',
-                type: 'radio',
-                click: handleSort,
-                checked: sort.by.songName
-            },
-            {
-                label: 'Artist name',
-                type: 'radio',
-                click: handleSort,
-                checked: sort.by.artistName
-            },
-            {
-                label: 'Default',
-                type: 'radio',
-                click: handleSort,
-                checked: true
-            },
-            { type: 'separator' },
-            {
-                label: 'Ascending',
-                type: 'radio',
-                click: handleSort,
-                checked: sort.order.asc
-            },
-            {
-                label: 'Descending',
-                type: 'radio',
-                click: handleSort,
-                checked: sort.order.dec
-            }
-        ]
-    };
-
-    if (process.platform === 'darwin') {
-        // openFolder = {
-        //     label: 'Folders',
-        //     submenu: [
-        //         {
-        //             label: 'Open folder',
-        //             accelerator: 'CommandOrControl+o',
-        //             click: function () {
-        //                 openFolderDialog();
-        //             }
-        //         }
-        //     ]
-        // };
-
-        info = {
-            label: 'Info',
-            submenu: [
-                {
-                    label: 'Show info',
-
-                    click: function () {
-                        // openAboutWindow({
-                        //     product_name: 'OBS simple player :)',
-                        //     homepage: 'https://github.com/codelastnight/obs-SimplePlayer',
-                        //     copyright: 'arts + crafts',
-                        //     icon_path: path.join(__dirname, 'logo.png')
-                        // });
-                    }
-                }
-            ]
-        };
-
-        createMenuMac(info, sort);
-    } else {
-        createMenuOther(info, sort);
-    }
 }
+export interface updateData {
+    type: 'available' | 'error' | 'downloaded' | 'unavailable' | 'none'
+}
+autoUpdater.on('update-available', () => {
+    win?.webContents.send('data:update', { type: 'available' } as updateData);
+});
+autoUpdater.on('error', () => {
+    win?.webContents.send('data:update', { type: 'error' } as updateData);
+});
+autoUpdater.on('update-downloaded', () => {
+    win?.webContents.send('data:update', { type: 'downloaded' } as updateData);
+});
+autoUpdater.on('update-not-available', () => {
+    win?.webContents.send('data:update', { type: 'unavailable' } as updateData);
+});
 
+/// init electron window
 let win: BrowserWindow | null;
 
 function createWindow() {
@@ -214,8 +73,6 @@ function createWindow() {
         }
     });
 
-
-
     var asc = true;
     var dec = false;
 
@@ -226,7 +83,6 @@ function createWindow() {
 
     var sort = { order: { asc, dec }, by: { songName, artistName, dateAdded } };
 
-    createMenu(sort);
 
     // for HMR from electron-vite
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -244,12 +100,7 @@ function createWindow() {
         if (path === undefined) return;
         //  logging(path)
         scanDir(path)
-
-
-
     });
-
-
 
     ipcMain.on('data:set', (e, data) => {
         let combine = {}
@@ -316,46 +167,10 @@ function createWindow() {
     // Open the DevTools if (isDev)
 }
 
-ipcMain.on('closed', () => {
-    status = 1;
-    win = null;
 
-    if (process.platform !== 'darwin') {
-        app.quit();
-    }
-});
-function launchServer() {
-    const { port1, port2 } = new MessageChannelMain()
-    // launch extra express server
-    child = utilityProcess.fork(path.resolve(__dirname, 'server.js'), ['server'])
-    child.postMessage({ message: 'launch server' }, [port1])
-    port1.on('message', (e) => {
-        console.log(e.data)
-    })
-}
-
-function checkForUpdate() {
-    autoUpdater.logger = require("electron-log")
-    autoUpdater.checkForUpdatesAndNotify();
-
-}
-export interface updateData {
-    type: 'available' | 'error' | 'downloaded' | 'unavailable' | 'none'
-}
-autoUpdater.on('update-available', () => {
-    win?.webContents.send('data:update', { type: 'available' } as updateData);
-});
-autoUpdater.on('error', () => {
-    win?.webContents.send('data:update', { type: 'error' } as updateData);
-});
-autoUpdater.on('update-downloaded', () => {
-    win?.webContents.send('data:update', { type: 'downloaded' } as updateData);
-});
-autoUpdater.on('update-not-available', () => {
-    win?.webContents.send('data:update', { type: 'unavailable' } as updateData);
-});
 
 app.whenReady().then(() => {
+    electronApp.setAppUserModelId('com.artsandcrafts')
     createWindow();
     checkForUpdate();
     // protocol.registerFileProtocol('file', (request, callback) => {
@@ -364,6 +179,13 @@ app.whenReady().then(() => {
     // });
 
 });
+
+app.on('activate', () => {
+    if (win === null) {
+        createWindow();
+    }
+});
+
 app.on('browser-window-created', (_, window) => {
     console.log(is.dev)
     optimizer.watchWindowShortcuts(window)
@@ -377,11 +199,15 @@ app.on('window-all-closed', () => {
     }
 });
 
-app.on('activate', () => {
-    if (win === null) {
-        createWindow();
+ipcMain.on('closed', () => {
+    status = 1;
+    win = null;
+
+    if (process.platform !== 'darwin') {
+        app.quit();
     }
 });
+
 
 async function openFolderDialog() {
     if (win === null) return;
@@ -394,7 +220,25 @@ async function openFolderDialog() {
         await scanDir(filePath);
         watchDir(filePath)
     }
+}
+import type { Song } from './parseMetadata'
 
+export interface fileData {
+    path: string;
+    songList: Song[]
+}
+async function scanDir(filePath) {
+    if (!filePath || filePath[0] === 'undefined' || !win) return;
+
+
+    const arr = walkSync(filePath);
+    const names = await parseMetadataFiles(arr);
+    const arg = {
+
+        path: filePath,
+        songList: names
+    }
+    win.webContents.send('files:selected', arg);
 }
 
 function walkSync(dir: string, filelist: string[] = []) {
@@ -419,26 +263,9 @@ function walkSync(dir: string, filelist: string[] = []) {
     return filelist;
 };
 
-import type { Song } from './parseMetadata'
-
-export interface fileData {
-    path: string;
-    songList: Song[]
-}
-async function scanDir(filePath) {
-    if (!filePath || filePath[0] === 'undefined' || !win) return;
 
 
-    const arr = walkSync(filePath);
-    const names = await parseMetadataFiles(arr);
-    const arg = {
-
-        path: filePath,
-        songList: names
-    }
-    win.webContents.send('files:selected', arg);
-}
-
+//check for changes in folder
 let watcher;
 
 async function watchDir(filePath) {
@@ -449,29 +276,9 @@ async function watchDir(filePath) {
 
     watcher
         .on('add', (path: string) => { if (win) win.webContents.send('playlist:add', path) })
-        .on('unlink', (path: string) => { if (win) win.webContents.send('playlist:remove', path) });
+        .on('unlink', (path: string) => { if (win) win.webContents.send('playlist:remove', path) })
+
 }
 
-function createMenuOther(info, sort) {
-    var menu = Menu.buildFromTemplate([sort, info]);
-    Menu.setApplicationMenu(menu);
-}
 
-function createMenuMac(sort, info) {
-    var menu = Menu.buildFromTemplate([
-        {
-            label: require('electron').app.getName(),
-            submenu: [
-                {
-                    role: 'quit',
-                    accelerator: 'Cmd+Q'
-                }
-            ]
-        },
-
-        sort,
-        info
-    ]);
-    Menu.setApplicationMenu(menu);
-}
 
