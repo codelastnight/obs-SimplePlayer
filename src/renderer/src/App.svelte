@@ -2,7 +2,6 @@
 import { Socket, io } from 'socket.io-client';
 import { onMount } from 'svelte';
 import { sortDefault, sortByArtist, sortByDate, sortByTitle } from './helpers';
-import { Howler } from 'howler';
 import { state } from './store';
 import { Modals, closeModal } from 'svelte-modals';
 
@@ -21,9 +20,6 @@ let song: ClientSong;
 let songPlaying = false;
 
 let loading = false;
-
-let mute = false;
-let slider = 100;
 
 let obsSettingData;
 $: obsSettingData, updateOBS();
@@ -49,22 +45,6 @@ onMount(() => {
             updateOBS();
         }
     });
-
-    async function checkSettings() {
-        const settings = await eAPI.dataGet('settings');
-        const getpath = await eAPI.dataGet('path');
-
-        if (settings !== undefined && settings.type === 'ok') {
-            if (settings.data.volume) slider = settings.data.volume;
-        }
-
-        if (getpath !== undefined && getpath.type === 'ok') {
-            if (getpath.data.path !== undefined)
-                eAPI.handleScanDir(getpath.data.path.toString());
-        }
-    }
-
-    checkSettings();
 });
 
 function updateOBS() {
@@ -91,13 +71,6 @@ eAPI.handleSortChange((_, arg) => {
         playlist = sortDefault(playlist, arg.items[6].checked);
 
     song = playlist.find((x) => x.index == i);
-});
-eAPI.handleSaveSetting((_) => {
-    eAPI.dataSet({
-        key: 'settings',
-        value: { mute: mute, volume: slider }
-    });
-    eAPI.handleClosed();
 });
 
 eAPI.handleSelectedFiles(async (_, list) => {
@@ -149,26 +122,15 @@ function playPlaylistSong(i: number) {
     song = playlist.find((item) => item.index === i);
 }
 
-function togglemute() {
-    if (mute) {
-        mute = false;
-        setVolume(slider / 100);
-    } else {
-        mute = true;
-        setVolume(0);
+function onModalKeyPress(e) {
+    if (e.key === 'Escape') {
+        // write your logic here.
+        closeModal();
     }
-    eAPI.dataSet({ key: 'settings', value: { mute: mute, volume: slider } });
-}
-
-export function setVolume(val) {
-    Howler.volume(val);
-}
-$: {
-    setVolume(slider / 100);
-    mute = false;
 }
 </script>
 
+<svelte:body on:keyup={onModalKeyPress} />
 <main>
     <div class="col-span-2 h-fit">
         <Titlebar />
@@ -199,22 +161,31 @@ $: {
         <Player {playlist} bind:song bind:isPlaying={songPlaying} />
 
         <div class="flex items-center justify-between w-full" id="outerCtrl">
-            <Settings on:togglemute={togglemute} bind:slider {mute} />
+            <Settings />
         </div>
     </section>
 </main>
 <Modals>
-    <div slot="backdrop" class="backdrop" on:click={closeModal} />
+    <div
+        slot="backdrop"
+        class="fixed inset-0 bg-stone-900/70"
+        on:click={closeModal}
+    />
 </Modals>
 
 <style global lang="postcss">
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-body {
-    @apply h-full bg-violet-950 text-stone-100;
 
-    background: #161d13;
+@layer base {
+    :root {
+        --primary: 22 29 19;
+        /* ... */
+    }
+}
+body {
+    @apply h-full bg-primary text-stone-100;
 }
 html {
     @apply h-full;
@@ -222,13 +193,5 @@ html {
 main {
     @apply grid h-full w-full grid-cols-2;
     grid-template-rows: auto 1fr;
-}
-.backdrop {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    left: 0;
-    background: rgba(0, 0, 0, 0.5);
 }
 </style>

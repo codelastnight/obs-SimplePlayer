@@ -1,21 +1,70 @@
 <script>
-import { createEventDispatcher } from 'svelte';
+import { Howler } from 'howler';
+import { onMount } from 'svelte';
 import Fa from 'svelte-fa';
 import { faVolumeMute, faVolumeHigh } from '@fortawesome/free-solid-svg-icons';
-import {concertMode} from './store';
+import { concertMode } from './store';
+import { closeModal, openModal } from 'svelte-modals';
+import ModalConfirm from './components/ModalConfirm.svelte';
 
-export let slider;
-export let mute;
+let slider;
+let mute;
 
+const eAPI = window.api;
 let concert = false;
-$: concertMode.set(concert)
-const dispatch = createEventDispatcher();
+$: concertMode.set(concert);
 
+function handleClick() {
+    openModal(ModalConfirm, {
+        message: 'play',
+        onConfirm: () => {
+            console.log('a');
+            closeModal();
+        }
+    });
+}
+onMount(() => {
+    async function checkSettings() {
+        const settings = await eAPI.dataGet('settings');
+        const getpath = await eAPI.dataGet('path');
+
+        if (settings !== undefined && settings.type === 'ok') {
+            if (settings.data.volume) slider = settings.data.volume;
+        }
+
+        if (getpath !== undefined && getpath.type === 'ok') {
+            if (getpath.data.path !== undefined)
+                eAPI.handleScanDir(getpath.data.path.toString());
+        }
+    }
+
+    checkSettings();
+});
+
+eAPI.handleSaveSetting((_) => {
+    eAPI.dataSet({
+        key: 'settings',
+        value: { mute: mute, volume: slider }
+    });
+    eAPI.handleClosed();
+});
 function togglemute() {
-    dispatch('togglemute');
+    if (mute) {
+        mute = false;
+        Howler.volume(slider / 100);
+    } else {
+        mute = true;
+        Howler.volume(0);
+    }
+    eAPI.dataSet({ key: 'settings', value: { mute: mute, volume: slider } });
+}
+$: {
+    Howler.volume(slider / 100);
+    mute = false;
 }
 </script>
 
+<button on:click={handleClick}>Open Modal</button>
 <div class=" flex gap-x-1 items-center">
     <button
         type="button"
@@ -40,7 +89,10 @@ function togglemute() {
     />
 </div>
 
-<label class="flex items-center cursor-pointer relative rounded-full  py-1 pl-3 pr-1 mr-1" class:concert={concert}>
+<label
+    class="flex items-center cursor-pointer relative rounded-full py-1 pl-3 pr-1 mr-1"
+    class:concert
+>
     <span class="pr-2 text-sm">Concert Mode</span>
 
     <input
@@ -55,19 +107,19 @@ function togglemute() {
 </label>
 
 <style lang="postcss">
-    input:checked + .toggle-bg:after {
-        transform: translateX(100%);
-        @apply border-gray-200 bg-gray-200;
-    }
-    input:checked + .toggle-bg {
-        @apply bg-emerald-700 border-green-300/25;
-    }
-    .toggle-bg:after {
-        content: '';
-        @apply absolute top-[1px] left-[1px] bg-gray-400 border  border-gray-400 rounded-full h-5 w-5 transition shadow-sm;
-    }
-    
-    .concert {
-        @apply bg-purple-900;
-    }
-    </style>
+input:checked + .toggle-bg:after {
+    transform: translateX(100%);
+    @apply border-gray-200 bg-gray-200;
+}
+input:checked + .toggle-bg {
+    @apply border-green-300/25 bg-emerald-700;
+}
+.toggle-bg:after {
+    content: '';
+    @apply absolute left-[1px] top-[1px] h-5 w-5  rounded-full border border-gray-400 bg-gray-400 shadow-sm transition;
+}
+
+.concert {
+    @apply bg-purple-900;
+}
+</style>

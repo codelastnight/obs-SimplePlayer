@@ -10,7 +10,7 @@ export interface ClientSong extends Song {
 
 <script lang="ts">
 import { Howl } from 'howler';
-import TrackDetails from './TrackDetails.svelte';
+import TrackDetails from './components/TrackDetails.svelte';
 import PlaybackControls from './PlaybackControls.svelte';
 
 export let playlist: ClientSong[];
@@ -160,6 +160,7 @@ function seekToTime(event) {
             id="seek"
             bind:clientWidth={offsetWidth}
             on:click={(e) => seekToTime(e)}
+            role=""
         >
             <div
                 class="progress-bar bg-danger bg-emerald-300 h-full rounded-full"

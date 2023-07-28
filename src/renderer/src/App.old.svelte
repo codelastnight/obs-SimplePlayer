@@ -12,7 +12,7 @@ import {
 } from './helpers';
 
 import Playlist from './Playlist.svelte';
-import TrackDetails from './TrackDetails.svelte';
+import TrackDetails from './components/TrackDetails.svelte';
 import PlaybackControls from './PlaybackControls.svelte';
 import Settings from './Settings.svelte';
 
@@ -487,27 +487,6 @@ $: if (player) {
 }
 </script>
 
-<style global lang="postcss">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-body {
-    @apply bg-slate-900 h-full text-white;
-}
-html {
-    @apply h-full;
-}
-.progress .progress-bar {
-    -webkit-transition: none;
-    -o-transition: none;
-    transition: none;
-}
-.progress {
-    margin: 2%;
-    height: 10px;
-}
-</style>
-
 <svelte:window
     on:keyup={(e) => {
         if (!obsVisible) handleKeyboardPress(e.key);
@@ -620,3 +599,24 @@ html {
         </div>
     </section>
 </main>
+
+<style global lang="postcss">
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+body {
+    @apply h-full bg-slate-900 text-white;
+}
+html {
+    @apply h-full;
+}
+.progress .progress-bar {
+    -webkit-transition: none;
+    -o-transition: none;
+    transition: none;
+}
+.progress {
+    margin: 2%;
+    height: 10px;
+}
+</style>
