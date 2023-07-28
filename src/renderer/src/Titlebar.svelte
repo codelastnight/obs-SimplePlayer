@@ -5,10 +5,10 @@ import {
     faMinus,
     faCircleNotch
 } from '@fortawesome/free-solid-svg-icons';
-import Dialog from './Dialog.svelte';
+import Dialog from './components/Dialog.svelte';
 import Marquee from 'svelte-fast-marquee';
 import { onMount } from 'svelte';
-import ObsStatusChip from './ObsStatusChip.svelte';
+import ObsStatusChip from './components/ObsStatusChip.svelte';
 import { concertMode } from './store';
 
 let version;
