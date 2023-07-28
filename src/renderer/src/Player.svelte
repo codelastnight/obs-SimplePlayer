@@ -1,8 +1,6 @@
 <script context="module" lang="ts">
 import type { Song } from '../../main/parseMetadata';
 
-
-
 export interface ClientSong extends Song {
     // name: string;
     howl: Howl;
@@ -80,6 +78,7 @@ function play() {
             },
             onend: function () {
                 skipNext();
+                isPlaying = false;
             }
         });
     }
@@ -131,18 +130,6 @@ function seekToTime(event) {
 }
 </script>
 
-<style>
-.progress .progress-bar {
-    -webkit-transition: none;
-    -o-transition: none;
-    transition: none;
-}
-.progress {
-    margin: 2%;
-    height: 10px;
-}
-</style>
-
 <div class="flex flex-col h-full w-full justify-between my-8">
     <div>
         <TrackDetails {song} />
@@ -156,8 +143,8 @@ function seekToTime(event) {
         />
         {#if isPlaying}
             <div class="flex pointer-events-none absolute">
-                <img src='/Froge.gif' class=" left-1/3" alt="frog dance" />
-                <img src='frogmusicnotes.gif' alt="frog dance 2" />
+                <img src="/Froge.gif" class=" left-1/3" alt="frog dance" />
+                <img src="frogmusicnotes.gif" alt="frog dance 2" />
             </div>
         {/if}
     </div>
@@ -184,3 +171,15 @@ function seekToTime(event) {
         </div>
     </div>
 </div>
+
+<style>
+.progress .progress-bar {
+    -webkit-transition: none;
+    -o-transition: none;
+    transition: none;
+}
+.progress {
+    margin: 2%;
+    height: 10px;
+}
+</style>

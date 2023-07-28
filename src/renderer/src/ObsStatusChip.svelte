@@ -17,7 +17,7 @@ const connection = {
         'ur disconnected :( restart app?',
         'bg-yellow-600'
     ],
-    ready: [faCircleCheck, 'ready 2 play ', 'bg-emerald-600/50']
+    ready: [faCircleCheck, 'frogs are online! ', 'bg-emerald-600/50']
 };
 $: connectionText = connection[$state][1];
 </script>
@@ -25,7 +25,7 @@ $: connectionText = connection[$state][1];
 <div
     class={`py-1 px-2 rounded-full flex gap-x-2 items-center h-fit  ${connection[$state][2]} w-fit `}
 >
-    <Fa icon={connection[$state][0]} size="md" spin={$state === 'init'} />
+    <Fa icon={connection[$state][0]} size="sm" spin={$state === 'init'} />
     <p class="text-xs">
         <span class="text-white/75 bold">status:</span>
         {connectionText}

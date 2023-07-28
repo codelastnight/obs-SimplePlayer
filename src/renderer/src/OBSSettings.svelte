@@ -14,6 +14,7 @@ let doanimate = true;
 let doAnimRand = true;
 let showtrackartist = false;
 let showtrack = true;
+let replaceTrack;
 $: replaceTrack = song?.title || '';
 let fontSize = 16;
 let width = 20;
@@ -57,20 +58,6 @@ function close() {
 }
 </script>
 
-<style lang="postcss">
-input:checked + .toggle-bg:after {
-    transform: translateX(100%);
-    @apply border-slate-500;
-}
-input:checked + .toggle-bg {
-    @apply bg-emerald-400 border-emerald-400;
-}
-.toggle-bg:after {
-    content: '';
-    @apply absolute top-0.5 left-0.5 bg-slate-400 border border-slate-300 rounded-full h-5 w-5 transition shadow-sm;
-}
-</style>
-
 <button
     type="button"
     on:click={() => (obsVisible = !obsVisible)}
@@ -84,22 +71,27 @@ input:checked + .toggle-bg {
         <div
             class="bg-neutral-900 rounded-xl py-4 px-4 flex flex-col gap-y-2 border border-slate-800"
         >
-            <div class="flex justify-between items-center">
+            <header class="flex justify-between items-center">
                 <h1 class="text-xl font-bold">OBS settings</h1>
-                <div class="flex items-center gap-x-1">
-                    <button
-                        on:click={updateOBS}
-                        class="text-sm py-1 px-4 underline hover:bg-slate-600 rounded-full"
-                        >force send obs update</button
+                <div class="flex items-center">
+                    <a
+                        href="http://localhost:9990"
+                        target="_blank"
+                        class="text-sm py-1 px-3 underline hover:bg-slate-600 rounded-full underline"
                     >
+                        open in browser
+                    </a>
+                    <!-- <button class='text-sm py-1 pr-4 pl-1  underline hover:bg-slate-600 rounded-r-full underline' on:click={()=> navigator.clipboard.writeText('http://localhost:9990')}> 
+                        <Fa icon={faCopy} />
+                    </button> -->
                     <button
                         on:click={close}
-                        class=" py-2 px-4 bg-slate-800 hover:bg-red-600 rounded-full"
+                        class=" py-2 px-4 ml-2 bg-slate-800 hover:bg-red-600 rounded-full"
                         ><Fa icon={faXmark} /></button
                     >
                 </div>
-            </div>
-
+            </header>
+            <div class="flex items-center gap-1"></div>
             <div class="grid grid-cols-2 gap-y-4">
                 <label class="flex items-center cursor-pointer relative">
                     <input
@@ -204,8 +196,9 @@ input:checked + .toggle-bg {
                         updateOBS();
                     }}
                     class="py-1 px-4 bg-slate-800 hover:bg-slate-600 rounded-full"
-                    >reset</button
                 >
+                    reset
+                </button>
             </label>
             <label class="flex justify-end gap-x-2">
                 box width
@@ -236,3 +229,17 @@ input:checked + .toggle-bg {
         </div>
     </section>
 {/if}
+
+<style lang="postcss">
+input:checked + .toggle-bg:after {
+    transform: translateX(100%);
+    @apply border-slate-500;
+}
+input:checked + .toggle-bg {
+    @apply border-emerald-400 bg-emerald-400;
+}
+.toggle-bg:after {
+    content: '';
+    @apply absolute left-0.5 top-0.5 h-5 w-5 rounded-full border border-slate-300 bg-slate-400 shadow-sm transition;
+}
+</style>

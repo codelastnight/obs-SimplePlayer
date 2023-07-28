@@ -1,6 +1,6 @@
 {
   "name": "frog-player",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "homepage": "",
   "description": "frogfest software",
   "repository": {
@@ -14,11 +14,8 @@
     "preview": "electron-vite preview",
     "prebuild": "electron-vite build",
     "build:win": "pnpm run prebuild && electron-builder --win --config",
-    "format-check": "prettier --check \"{,!(node_modules|public)/**/}*.{js,svelte}\"",
-    "format": "prettier --write \"{,!(node_modules|public)/**/}*.{js,svelte}\"",
-    "preinstall": "npx only-allow pnpm",
-    "package": "electron-forge package",
-    "make": "electron-forge make"
+    "preinstall": "npx only-allow pnpm"
+
   },
   "author": "last night, Aveek Saha",
   "license": "MIT",
@@ -35,7 +32,7 @@
     "postcss-import": "^15.1.0",
     "postcss-load-config": "^4.0.1",
     "prettier": "^3.0.0",
-    "prettier-plugin-svelte": "^3.0.1",
+    "prettier-plugin-svelte": "^3.0.3",
     "svelte": "^4.1.1",
     "svelte-preprocess": "^5.0.4",
     "tailwindcss": "^3.3.3",
@@ -54,9 +51,11 @@
     "express": "^4.18.2",
     "howler": "^2.2.3",
     "music-metadata": "7.13.4",
+    "prettier-plugin-tailwindcss": "^0.4.1",
     "socket.io": "^4.7.1",
     "socket.io-client": "^4.7.1",
     "svelte-fa": "^3.0.4",
-    "svelte-fast-marquee": "^0.4.1"
+    "svelte-fast-marquee": "^0.4.1",
+    "svelte-modals": "^1.3.0"
   }
 }

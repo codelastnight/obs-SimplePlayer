@@ -4,6 +4,7 @@ import { onMount } from 'svelte';
 import { sortDefault, sortByArtist, sortByDate, sortByTitle } from './helpers';
 import { Howler } from 'howler';
 import { state } from './store';
+import { Modals, closeModal } from 'svelte-modals';
 
 import Playlist from './Playlist.svelte';
 import Settings from './Settings.svelte';
@@ -13,7 +14,7 @@ import Titlebar from './Titlebar.svelte';
 
 const eAPI = window.api;
 
-let socket:Socket;
+let socket: Socket;
 
 let playlist: ClientSong[];
 let song: ClientSong;
@@ -35,14 +36,14 @@ onMount(() => {
         socket.emit('whoiam', 'sender');
     });
     socket.on('whouare', function () {
-        state.set( 'ready') ;
+        state.set('ready');
     });
     socket.on('disconnect', function () {
-        state.set( 'disconnect');
+        state.set('disconnect');
     });
-    socket.on('connect_error',function (){
-        state.set( 'disconnect');
-    })
+    socket.on('connect_error', function () {
+        state.set('disconnect');
+    });
     socket.on('ask4update', function (msg) {
         if (msg === 'pls') {
             updateOBS();
@@ -168,38 +169,14 @@ $: {
 }
 </script>
 
-<style global lang="postcss">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-body {
-    @apply bg-violet-950 h-full text-stone-100;
-   
-    background: #161d13;
- 
-}
-html {
-    @apply h-full;
-}
-main {
-    grid-template-rows: auto 1fr;
-}
-</style>
-
-<main class="grid grid-cols-2 w-full h-full">
+<main>
     <div class="col-span-2 h-fit">
-        <Titlebar  />
+        <Titlebar />
     </div>
 
     <section class="w-full h-full flex flex-col overflow-y-hidden pr-[10px]">
         {#if loading}
-            <div
-                class="spinner-border text-danger centerBlock"
-                style="width: 5rem; height: 5rem;"
-                role="status"
-            >
-                <span class="sr-only">Loading...</span>
-            </div>
+            <div role="status">Loading...</div>
         {:else}
             <Playlist
                 {playlist}
@@ -226,3 +203,32 @@ main {
         </div>
     </section>
 </main>
+<Modals>
+    <div slot="backdrop" class="backdrop" on:click={closeModal} />
+</Modals>
+
+<style global lang="postcss">
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+body {
+    @apply h-full bg-violet-950 text-stone-100;
+
+    background: #161d13;
+}
+html {
+    @apply h-full;
+}
+main {
+    @apply grid h-full w-full grid-cols-2;
+    grid-template-rows: auto 1fr;
+}
+.backdrop {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+</style>

@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from 'express';
+import express from 'express';
 import { createServer } from 'http';
 
 import { join } from 'path'
@@ -17,6 +17,9 @@ let app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: '*' } });
 httpServer.listen(9990);
+console.log(join(__dirname + '../../resources'))
+app.use('/', express.static(join(__dirname, '../../resources')));
+
 app.get('/', function (req, res) {
 
     res.sendFile(join(__dirname, '../../resources/serve.html'));

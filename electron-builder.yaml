@@ -1,5 +1,5 @@
 appId: com.artsandcrafts.frogfest
-productName: frog-player
+productName: frog player
 directories:
   buildResources: build
 files:
