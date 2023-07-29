@@ -44,7 +44,6 @@
     "@electron-toolkit/preload": "^2.0.0",
     "@electron-toolkit/utils": "^2.0.0",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
-    "about-window": "^1.15.2",
     "chokidar": "^3.5.3",
     "electron-log": "^4.4.8",
     "electron-store": "^8.1.0",

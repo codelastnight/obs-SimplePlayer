@@ -8,8 +8,9 @@ import { Modals, closeModal } from 'svelte-modals';
 import Playlist from './Playlist.svelte';
 import Settings from './Settings.svelte';
 import Player, { ClientSong } from './Player.svelte';
-import ObsSettings from './OBSSettings.svelte';
+import ObsSettings from './components/OBSSettings.svelte';
 import Titlebar from './Titlebar.svelte';
+import { fade } from 'svelte/transition';
 
 const eAPI = window.api;
 
@@ -147,9 +148,8 @@ function onModalKeyPress(e) {
             />
         {/if}
     </section>
-
     <section
-        class="flex flex-col h-full w-full pb-6 py-3 px-3 items-center justify-between"
+        class="flex flex-col h-full w-full pb-3 py-3 px-3 items-center justify-between"
     >
         <div class="flex gap-x-2 self-end justify-between w-full items-center">
             <ObsSettings
@@ -160,15 +160,16 @@ function onModalKeyPress(e) {
 
         <Player {playlist} bind:song bind:isPlaying={songPlaying} />
 
-        <div class="flex items-center justify-between w-full" id="outerCtrl">
-            <Settings />
-        </div>
+        <Settings />
     </section>
 </main>
 <Modals>
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div
         slot="backdrop"
         class="fixed inset-0 bg-stone-900/70"
+        transition:fade={{ duration: 200 }}
         on:click={closeModal}
     />
 </Modals>

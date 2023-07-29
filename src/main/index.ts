@@ -10,8 +10,8 @@ import {
 import { autoUpdater } from "electron-updater"
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 
-import * as path from 'path'
-import * as fs from 'fs'
+import {join,resolve} from 'path'
+import {readdirSync, statSync} from 'fs'
 import { parseMetadataFiles } from './parseMetadata'
 import { watch } from 'chokidar';
 import Store from 'electron-store';
@@ -24,7 +24,7 @@ let child;
 function launchServer() {
     const { port1, port2 } = new MessageChannelMain()
     // launch extra express server
-    child = utilityProcess.fork(path.resolve(__dirname, 'server.js'), ['server'])
+    child = utilityProcess.fork(resolve(__dirname, 'server.js'), ['server'])
     child.postMessage({ message: 'launch server' }, [port1])
     port1.on('message', (e) => {
         console.log(e.data)
@@ -65,7 +65,7 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: true,
             nodeIntegrationInWorker: true,
-            preload: path.join(__dirname, '../preload/index.js'),
+            preload: join(__dirname, '../preload/index.js'),
             // enableRemoteModule: true,
             backgroundThrottling: false,
             webviewTag: true,
@@ -88,7 +88,7 @@ function createWindow() {
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
         win.loadURL(process.env['ELECTRON_RENDERER_URL'])
     } else {
-        win.loadFile(path.join(__dirname, '../renderer/index.html'))
+        win.loadFile(join(__dirname, '../renderer/index.html'))
     }
 
     win.webContents.once('dom-ready', () => {
@@ -242,10 +242,10 @@ async function scanDir(filePath) {
 }
 
 function walkSync(dir: string, filelist: string[] = []) {
-    const files = fs.readdirSync(dir);
+    const files = readdirSync(dir);
     files.forEach(function (file) {
-        if (fs.statSync(path.join(dir, file)).isDirectory()) {
-            filelist = walkSync(path.join(dir, file), filelist);
+        if (statSync(join(dir, file)).isDirectory()) {
+            filelist = walkSync(join(dir, file), filelist);
         } else {
             if (
                 file.endsWith('.mp3') ||
@@ -256,7 +256,7 @@ function walkSync(dir: string, filelist: string[] = []) {
                 file.endsWith('.ogg') ||
                 file.endsWith('.opus')
             ) {
-                filelist.push(path.join(dir, file));
+                filelist.push(join(dir, file));
             }
         }
     });

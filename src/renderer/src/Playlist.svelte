@@ -3,6 +3,8 @@ import { createEventDispatcher } from 'svelte';
 import Fa from 'svelte-fa';
 import { faFrog, faFolderOpen } from '@fortawesome/free-solid-svg-icons';
 import type { ClientSong } from './Player.svelte';
+import { handleConfirm } from './components/ModalConcert.svelte';
+
 let search = '';
 export let playlist: ClientSong[];
 export let song: ClientSong;
@@ -21,8 +23,16 @@ function filterPlaylist(playerObj) {
     return list;
 }
 function changeSong(number) {
-    dispatch('changeSong', {
-        index: number
+    handleConfirm('change song', () => {
+        dispatch('changeSong', {
+            index: number
+        });
+    });
+}
+
+function openFolder() {
+    handleConfirm('open folder', () => {
+        window.api.openDir();
     });
 }
 </script>
@@ -39,10 +49,7 @@ function changeSong(number) {
             </span>
         </h1>
         {#if list.length !== 0}
-            <button
-                class="primary text-sm"
-                on:click={() => window.api.openDir()}
-            >
+            <button class="primary text-sm" on:click={openFolder}>
                 Open folder
                 <Fa icon={faFolderOpen} />
             </button>
@@ -53,7 +60,7 @@ function changeSong(number) {
         <div class="grid place-items-center w-full h-1/2">
             <div class="flex flex-col items-center gap-2">
                 <p>click "open folder" 2 get started 🐸</p>
-                <button class="primary" on:click={() => window.api.openDir()}>
+                <button class="primary" on:click={openFolder}>
                     Open folder
                     <Fa icon={faFolderOpen} />
                 </button>

@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 import type { Song } from '../../main/parseMetadata';
-import { concertMode } from './store';
+
 export interface ClientSong extends Song {
     // name: string;
     howl: Howl;
@@ -11,7 +11,8 @@ export interface ClientSong extends Song {
 <script lang="ts">
 import { Howl } from 'howler';
 import TrackDetails from './components/TrackDetails.svelte';
-import PlaybackControls from './PlaybackControls.svelte';
+import PlaybackControls from './components/PlaybackControls.svelte';
+import { onDestroy } from 'svelte';
 
 export let playlist: ClientSong[];
 export let song: ClientSong;
@@ -42,7 +43,10 @@ function onPlaylistSet() {
 
 $: onSongChange(song);
 function onSongChange(nextSong: ClientSong) {
-    if (prevSong?.howl) prevSong.howl.stop();
+    if (prevSong?.howl) {
+        prevSong.howl.stop();
+        prevSong.howl = null;
+    }
     prevSong = nextSong;
 }
 
@@ -129,26 +133,31 @@ function seek(time) {
 function seekToTime(event) {
     seek(event.offsetX / offsetWidth);
 }
+onDestroy(() => {
+    clearInterval(playInterval);
+    song?.howl?.stop();
+});
 </script>
 
-<div class="flex flex-col h-full w-full justify-between my-8">
-    <div>
+<div class="player">
+    <div class="justify-self-start w-full">
         <TrackDetails {song} />
     </div>
 
-    <div class="px-2">
+    <div class="px-2 w-full">
         <PlaybackControls
             on:prevSong={skipPrev}
             on:nextSong={skipNext}
             bind:isPlaying
+            disabled={!song}
         />
-        {#if isPlaying}
-            <div class="flex pointer-events-none absolute">
-                <img src="/Froge.gif" class=" left-1/3" alt="frog dance" />
-                <img src="frogmusicnotes.gif" alt="frog dance 2" />
-            </div>
-        {/if}
     </div>
+    {#if isPlaying}
+        <div class="flex pointer-events-none absolute z-400">
+            <img src="/Froge.gif" class=" left-1/3" alt="frog dance" />
+            <img src="frogmusicnotes.gif" alt="frog dance 2" />
+        </div>
+    {/if}
     <div class="w-full">
         <!-- svelte-ignore a11y-click-events-have-key-events -->
         <div
@@ -173,7 +182,11 @@ function seekToTime(event) {
     </div>
 </div>
 
-<style>
+<style lang="postcss">
+.player {
+    @apply mt-8 grid h-full w-full w-full gap-6;
+    grid-template-rows: 1fr auto auto auto;
+}
 .progress .progress-bar {
     -webkit-transition: none;
     -o-transition: none;

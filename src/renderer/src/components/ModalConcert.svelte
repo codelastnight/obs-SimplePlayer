@@ -1,7 +1,32 @@
+<script context="module" lang="ts">
+import { closeModal, openModal } from 'svelte-modals';
+import { concertMode } from '../store';
+import ModalConcert from './ModalConcert.svelte';
+
+let mode = false;
+concertMode.subscribe((a) => {
+    mode = a;
+});
+
+export function handleConfirm(action = 'confirm', onConfirm: () => void) {
+    if (!mode) {
+        onConfirm();
+        return;
+    }
+    openModal(ModalConcert, {
+        message: action,
+        onConfirm: () => {
+            onConfirm();
+            closeModal();
+        }
+    });
+}
+</script>
+
 <script>
-import { closeModal } from 'svelte-modals';
 import Fa from 'svelte-fa';
 import { faWarning } from '@fortawesome/free-solid-svg-icons';
+import { fly } from 'svelte/transition';
 // provided by <Modals />
 export let isOpen;
 
@@ -11,7 +36,13 @@ export let label = { confirm: message };
 </script>
 
 {#if isOpen}
-    <div role="dialog" class="modal">
+    <div
+        role="dialog"
+        class="modal"
+        transition:fly|global={{ y: 15, duration: 150 }}
+        on:introstart
+        on:outroend
+    >
         <div class="contents text-center">
             <h2 class="text-2xl max-w-xs mt-3 mb-3 mx-12">
                 Are you sure you

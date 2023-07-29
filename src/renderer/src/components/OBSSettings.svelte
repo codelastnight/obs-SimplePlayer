@@ -2,7 +2,7 @@
 import { faXmark, faGear } from '@fortawesome/free-solid-svg-icons';
 import Fa from 'svelte-fa';
 import { createEventDispatcher, onMount } from 'svelte';
-import { ClientSong } from './Player.svelte';
+import { ClientSong } from '../Player.svelte';
 export let song: ClientSong;
 
 let obsVisible = false;

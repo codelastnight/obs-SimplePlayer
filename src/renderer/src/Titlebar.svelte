@@ -182,6 +182,9 @@ button {
     width: 15rem;
 }
 .concert {
-    @apply w-[17rem] bg-purple-900;
+    @apply bg-purple-900;
+}
+.concert.badge-playing {
+    @apply w-[17rem];
 }
 </style>

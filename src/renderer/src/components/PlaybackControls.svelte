@@ -1,24 +1,41 @@
 <script>
 import { createEventDispatcher } from 'svelte';
-export let isPlaying;
+import { handleConfirm } from './ModalConcert.svelte';
 
 import Fa from 'svelte-fa';
 import {
     faStepBackward,
     faStepForward
 } from '@fortawesome/free-solid-svg-icons';
+
+export let isPlaying;
+export let disabled = false;
 const dispatch = createEventDispatcher();
 
 function prevSong() {
-    dispatch('prevSong');
+    handleConfirm('skip to previous', () => {
+        dispatch('prevSong');
+    });
 }
 
 function nextSong() {
-    dispatch('nextSong');
+    handleConfirm('skip song', () => {
+        dispatch('nextSong');
+    });
+}
+function playPause() {
+    const action = isPlaying ? 'pause' : 'play';
+    handleConfirm(action, () => {
+        isPlaying = !isPlaying;
+    });
 }
 </script>
 
-<div class="flex items-center gap-x-4 justify-center" role="group">
+<div
+    class="flex items-center gap-x-4 justify-center"
+    class:disabled
+    role="group"
+>
     <button
         type="button"
         id="prevBtn"
@@ -34,7 +51,7 @@ function nextSong() {
         id="playBtn"
         class="btn btn-primary-outline btn-lg hover:scale-110 active:scale-95"
         on:focus={(e) => e.target.blur()}
-        on:click={() => (isPlaying = !isPlaying)}
+        on:click={playPause}
     >
         {#if !isPlaying}
             <img src="play.png" alt="play song" class="w-[8rem]" />
@@ -53,3 +70,10 @@ function nextSong() {
         <Fa size="2x" icon={faStepForward} />
     </button>
 </div>
+
+<style>
+.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+</style>
