@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 import type { Song } from '../../main/parseMetadata';
-
+import { concertMode } from './store';
 export interface ClientSong extends Song {
     // name: string;
     howl: Howl;
@@ -24,13 +24,13 @@ let progressWidth = 0;
 
 let prevSong: ClientSong;
 
-$: playlist, onPlaylistSet();
 $: if (isPlaying) {
     if (song) play();
 } else {
     if (song) pause();
 }
 
+$: playlist, onPlaylistSet();
 function onPlaylistSet() {
     if (!playlist) return;
     console.log(playlist);
@@ -39,6 +39,7 @@ function onPlaylistSet() {
         isPlaying = false;
     }
 }
+
 $: onSongChange(song);
 function onSongChange(nextSong: ClientSong) {
     if (prevSong?.howl) prevSong.howl.stop();
@@ -149,11 +150,6 @@ function seekToTime(event) {
         {/if}
     </div>
     <div class="w-full">
-        <div class=" flex justify-between w-full">
-            <div id="timer">{timer}</div>
-            <div id="duration">{duration}</div>
-        </div>
-
         <!-- svelte-ignore a11y-click-events-have-key-events -->
         <div
             class="progress bg-slate-500 overflow-hidden rounded-full"
@@ -169,6 +165,10 @@ function seekToTime(event) {
                 aria-valuemin={0}
                 aria-valuemax={100}
             />
+        </div>
+        <div class=" flex justify-between w-full">
+            <div id="timer">{timer}</div>
+            <div id="duration">{duration}</div>
         </div>
     </div>
 </div>

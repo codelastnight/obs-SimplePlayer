@@ -1,8 +1,7 @@
 <script>
 import { createEventDispatcher } from 'svelte';
 export let isPlaying;
-import frogPlay from './static/play.png?asset';
-import frogPause from './static/pause.png?asset';
+
 import Fa from 'svelte-fa';
 import {
     faStepBackward,
@@ -38,9 +37,9 @@ function nextSong() {
         on:click={() => (isPlaying = !isPlaying)}
     >
         {#if !isPlaying}
-            <img src={frogPlay} alt="play song" class="w-[8rem]" />
+            <img src="play.png" alt="play song" class="w-[8rem]" />
         {:else}
-            <img src={frogPause} alt="pause song" class="w-[8rem]" />
+            <img src="pause.png" alt="pause song" class="w-[8rem]" />
         {/if}
     </button>
 

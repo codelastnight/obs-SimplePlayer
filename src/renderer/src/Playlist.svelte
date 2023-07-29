@@ -67,7 +67,7 @@ function changeSong(number) {
                     class="w-full cursor-pointer flex gap-x-2 items-center py-3 px-3 text-start hover:bg-amber-900/10 truncate"
                     on:click={() => changeSong(track?.index)}
                 >
-                    {#if song.index === track?.index}
+                    {#if song && song?.index === track?.index}
                         <div class="w-[25px]">🐸</div>
                     {:else}
                         <div class="w-[25px]" />
@@ -75,7 +75,7 @@ function changeSong(number) {
                     <div class="truncate w-full">
                         <p
                             class={`font-md truncate w-full ${
-                                song.index === track?.index
+                                song?.index === track?.index
                                     ? 'text-white font-bold '
                                     : ''
                             }`}

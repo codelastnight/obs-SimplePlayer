@@ -10,7 +10,9 @@ import Marquee from 'svelte-fast-marquee';
 import { onMount } from 'svelte';
 import ObsStatusChip from './components/ObsStatusChip.svelte';
 import { concertMode } from './store';
-
+import { cubicOut } from 'svelte/easing';
+export let songName;
+export let isPlaying;
 let version;
 let dialog;
 let updateStatus = 'none';
@@ -38,6 +40,15 @@ function checkAppUpdate() {
     window.api.checkAppUpdate();
     updateStatus = 'checking';
 }
+
+// transition
+function scaleX(node, options) {
+    return {
+        duration: options.duration,
+        easing: cubicOut,
+        css: (t) => `width:${t * 100}%; transform-origin: center center;`
+    };
+}
 </script>
 
 <header>
@@ -52,20 +63,37 @@ function checkAppUpdate() {
         <p class="text-white/75">v{version}</p>
     </div>
 
-    {#if $concertMode}
-        <div
-            class="overflow-hidden py-1 text-white text-sm bg-purple-900 rounded-full w-[15rem]"
-        >
-            <Marquee direction="left" play={true} speed={20}>
-                <p>
-                    <span class="text-white/75"> Running in </span>
-                    Concert Mode
+    <div
+        class="overflow-hidden py-1 text-white transition-all w-[11rem] text-sm text-center"
+        class:badge={isPlaying || $concertMode}
+        class:badge-playing={isPlaying}
+        class:concert={$concertMode}
+    >
+        {#if isPlaying}
+            <Marquee
+                direction="left"
+                play={isPlaying}
+                speed={$concertMode && isPlaying ? 20 : 25}
+            >
+                <p class="mx-3 text-clip">
+                    <span class="text-white/75"> now playing: </span>
+                    {songName || 'no song'}
                 </p>
+                {#if $concertMode}
+                    <p class="mx-3 text-clip">
+                        [Concert Mode
+                        <span class="text-white/75"> enabled </span>]
+                    </p>
+                {/if}
             </Marquee>
-        </div>
-    {:else}
-        <p class="px-3 py-1 text-white/80">the frogfest app :3</p>
-    {/if}
+        {:else if $concertMode}
+            <p class="px-6 w-full truncate text-clip">
+                Concert Mode <span class="text-white/75"> enabled</span>
+            </p>
+        {:else}
+            <p class="px-3 text-white/80 text-clip">the frogfest app :3</p>
+        {/if}
+    </div>
 
     <div class="flex h-full flex-1 justify-end gap-1 items-center">
         <ObsStatusChip />
@@ -145,5 +173,15 @@ button {
 }
 .update {
     @apply flex items-center gap-1 rounded-full px-3 py-1;
+}
+
+.badge {
+    @apply w-[12rem] rounded-full bg-slate-700;
+}
+.badge-playing {
+    width: 15rem;
+}
+.concert {
+    @apply w-[17rem] bg-purple-900;
 }
 </style>

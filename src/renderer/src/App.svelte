@@ -133,7 +133,7 @@ function onModalKeyPress(e) {
 <svelte:body on:keyup={onModalKeyPress} />
 <main>
     <div class="col-span-2 h-fit">
-        <Titlebar />
+        <Titlebar songName={song?.title} isPlaying={songPlaying} />
     </div>
 
     <section class="w-full h-full flex flex-col overflow-y-hidden pr-[10px]">

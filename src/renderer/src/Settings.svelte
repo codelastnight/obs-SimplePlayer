@@ -7,7 +7,7 @@ import { concertMode } from './store';
 import { closeModal, openModal } from 'svelte-modals';
 import ModalConfirm from './components/ModalConfirm.svelte';
 
-let slider;
+let slider = 50;
 let mute;
 
 const eAPI = window.api;
