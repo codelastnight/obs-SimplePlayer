@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { parseMetadata } from '../main/parseMetadata';
+import { Song, parseMetadata } from '../main/parseMetadata';
+
 import type { fileData, updateData } from '../main/index'
 //const { contextBridge, ipcRenderer } = require('electron')
 import { statSync } from 'fs';
@@ -12,11 +13,12 @@ const api = {
   handleSaveSetting: (callback) => ipcRenderer.on('save-settings', callback),
   handleLastPlayed: (callback) => ipcRenderer.on('last-played', callback),
   handleSortChange: (callback) => ipcRenderer.on('sort-change', callback),
-  handleSelectedFiles: (callback: (e, arg: fileData) => void) => ipcRenderer.on('files:selected', callback),
-  handlePlaylistAdd: (callback) => ipcRenderer.on('playlist:add', callback),
-  handlePlaylistRemove: (callback) => ipcRenderer.on('playlist:remove', callback),
+  onPlaylistChanged: (callback: (e, data:{dir,done}) => void) => ipcRenderer.on('files:selected', callback),
+  onPlaylistAdd: (callback:(e,song:Song)=>void) => ipcRenderer.on('playlist:add', callback),
+  onPlaylistRemoved: (callback) => ipcRenderer.on('playlist:remove', callback),
   handleClosed: () => ipcRenderer.send('closed'),
   handleScanDir: (path: string) => ipcRenderer.send('dir:scan', path),
+  cancelScanDir: () => ipcRenderer.send('dir:scan:cancel'),
   openDir: () => ipcRenderer.send('dir:open'),
   logging: (callback) => ipcRenderer.on('logging', callback),
   fsStatSync: (path: string) => statSync(path),

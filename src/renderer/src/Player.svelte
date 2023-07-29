@@ -34,7 +34,6 @@ $: if (isPlaying) {
 $: playlist, onPlaylistSet();
 function onPlaylistSet() {
     if (!playlist) return;
-    console.log(playlist);
     if (isPlaying) {
         pause();
         isPlaying = false;

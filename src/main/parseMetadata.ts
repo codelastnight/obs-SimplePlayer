@@ -41,7 +41,7 @@ export async function parseMetadata(audioFile: string) {
     const modDate = stats.mtime;
 
 
-    return { filePath: audioFile, title, artist, modDate, album } as song;
+    return { filePath: audioFile, title, artist, modDate, album }  as Song;
 }
 
 

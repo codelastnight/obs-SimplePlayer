@@ -1,10 +1,17 @@
 <script lang="ts">
 import { createEventDispatcher } from 'svelte';
 import Fa from 'svelte-fa';
-import { faFrog, faFolderOpen } from '@fortawesome/free-solid-svg-icons';
+import {
+    faFrog,
+    faFolderOpen,
+    faCircleNotch
+} from '@fortawesome/free-solid-svg-icons';
 import type { ClientSong } from './Player.svelte';
 import { handleConfirm } from './components/ModalConcert.svelte';
-
+let loading;
+window.api.onPlaylistChanged(async (_, data) => {
+    loading = !data.done;
+});
 let search = '';
 export let playlist: ClientSong[];
 export let song: ClientSong;
@@ -48,10 +55,18 @@ function openFolder() {
                 {list.length}
             </span>
         </h1>
-        {#if list.length !== 0}
+        {#if !loading}
             <button class="primary text-sm" on:click={openFolder}>
                 Open folder
                 <Fa icon={faFolderOpen} />
+            </button>
+        {:else}
+            <button
+                class="primary text-sm"
+                on:click={() => window.api.cancelScanDir()}
+            >
+                <Fa icon={faCircleNotch} size="sm" spin={true} />
+                Cancel Loading
             </button>
         {/if}
     </div>

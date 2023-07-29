@@ -16,11 +16,9 @@ const eAPI = window.api;
 
 let socket: Socket;
 
-let playlist: ClientSong[];
+let playlist: ClientSong[] = [];
 let song: ClientSong;
 let songPlaying = false;
-
-let loading = false;
 
 let obsSettingData;
 $: obsSettingData, updateOBS();
@@ -74,42 +72,34 @@ eAPI.handleSortChange((_, arg) => {
     song = playlist.find((x) => x.index == i);
 });
 
-eAPI.handleSelectedFiles(async (_, list) => {
+eAPI.onPlaylistChanged(async (_, data) => {
     if (songPlaying) songPlaying = false;
-    if (!list?.songList || list.songList.length === 0) return;
 
-    const songArr: ClientSong[] = list.songList.map((song, i) => {
-        return {
-            ...song,
-            howl: null,
-            index: i
-        };
-    });
-    playlist = songArr;
-    song = playlist[0];
-    updateOBS();
-
-    loading = false;
+    if (!data.done) {
+        playlist = [];
+        console.log('playlist load');
+    } else {
+        song = playlist[0];
+        updateOBS();
+        console.log('playlist finish load');
+    }
 });
-eAPI.handlePlaylistAdd(async (_, path) => {
+eAPI.onPlaylistAdd(async (_, metadata) => {
     if (!playlist) return;
-    if (playlist.some((item) => item.filePath === path)) return;
-    const { title, artist, modDate } = await eAPI.parseMetadata(path);
+    if (playlist.some((item) => item.filePath === metadata.filePath)) return;
+
     const i = playlist.length;
 
     playlist = [
         ...playlist,
         {
-            title: title,
-            filePath: path,
-            artist: artist,
-            modDate: modDate,
+            ...metadata,
             howl: null,
             index: i
         }
     ];
 });
-eAPI.handlePlaylistRemove((_, path) => {
+eAPI.onPlaylistRemoved((_, path) => {
     if (!playlist) return;
 
     const remIndex = playlist.findIndex((x) => x.filePath == path);
@@ -138,15 +128,11 @@ function onModalKeyPress(e) {
     </div>
 
     <section class="w-full h-full flex flex-col overflow-y-hidden pr-[10px]">
-        {#if loading}
-            <div role="status">Loading...</div>
-        {:else}
-            <Playlist
-                {playlist}
-                {song}
-                on:changeSong={(event) => playPlaylistSong(event.detail.index)}
-            />
-        {/if}
+        <Playlist
+            {playlist}
+            {song}
+            on:changeSong={(event) => playPlaylistSong(event.detail.index)}
+        />
     </section>
     <section
         class="flex flex-col h-full w-full pb-3 py-3 px-3 items-center justify-between"
