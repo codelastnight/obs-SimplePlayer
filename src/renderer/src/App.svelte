@@ -137,7 +137,7 @@ function onModalKeyPress(e) {
     <section
         class="flex flex-col h-full w-full pb-3 py-3 px-3 items-center justify-between"
     >
-        <div class="flex gap-x-2 self-end justify-between w-full items-center">
+        <div class="flex gap-x-2 justify-end w-full items-center">
             <ObsSettings
                 {song}
                 on:update={(e) => (obsSettingData = e.detail)}
@@ -155,7 +155,7 @@ function onModalKeyPress(e) {
     <div
         slot="backdrop"
         class="fixed inset-0 bg-stone-900/70"
-        transition:fade={{ duration: 200 }}
+        transition:fade={{ duration: 150 }}
         on:click={closeModal}
     />
 </Modals>

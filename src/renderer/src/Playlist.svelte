@@ -1,5 +1,5 @@
 <script lang="ts">
-import { createEventDispatcher } from 'svelte';
+import { createEventDispatcher, onMount } from 'svelte';
 import Fa from 'svelte-fa';
 import {
     faFrog,
@@ -8,16 +8,18 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import type { ClientSong } from './Player.svelte';
 import { handleConfirm } from './components/ModalConcert.svelte';
-let loading;
-window.api.onPlaylistChanged(async (_, data) => {
-    loading = !data.done;
-});
-let search = '';
+
 export let playlist: ClientSong[];
 export let song: ClientSong;
+
+let loading;
+let search = '';
+let path = '';
+const eAPI = window.api;
+const dispatch = createEventDispatcher();
+
 $: list = filterPlaylist(playlist);
 
-const dispatch = createEventDispatcher();
 function filterPlaylist(playerObj) {
     if (!playerObj) return [];
 
@@ -39,22 +41,44 @@ function changeSong(number) {
 
 function openFolder() {
     handleConfirm('open folder', () => {
-        window.api.openDir();
+        eAPI.openDir();
     });
 }
+
+onMount(() => {
+    async function checkSettings() {
+        const getpath = await eAPI.dataGet('path');
+        if (!!getpath && getpath.type === 'ok') {
+            if (!getpath.data) return;
+            eAPI.handleScanDir(getpath.data);
+            path = getpath.data;
+        }
+    }
+    checkSettings();
+});
+eAPI.onPlaylistChanged(async (_, data) => {
+    loading = !data.done;
+    const getpath = await eAPI.dataGet('path');
+    if (!getpath?.data) return;
+    path = getpath.data;
+});
 </script>
 
 <div class="container">
     <div class="flex justify-between items-center px-3 py-3">
-        <h1 class="font-bold text-xl flex gap-x-2 items-center">
-            <Fa icon={faFrog} />
-            Track List
-            <span
-                class="text-sm font-normal px-3 py-0.5 bg-gray-600/25 rounded-full"
-            >
-                {list.length}
-            </span>
-        </h1>
+        <div>
+            <h1 class="font-bold text-xl flex gap-x-2 items-center">
+                <Fa icon={faFrog} />
+                Track List
+                <span
+                    class="text-sm font-normal px-3 py-0.5 bg-gray-600/25 rounded-full"
+                >
+                    {list.length}
+                </span>
+            </h1>
+            <p class="text-xs text-white/75">{path}</p>
+        </div>
+
         {#if !loading}
             <button class="primary text-sm" on:click={openFolder}>
                 Open folder
@@ -82,7 +106,9 @@ function openFolder() {
             </div>
         </div>
     {:else}
-        <div class="h-full overflow-y-auto divide-y divide-stone-600">
+        <div
+            class="h-full overflow-y-auto divide-y divide-stone-600 border-t border-stone-600"
+        >
             {#each list as track (track?.index)}
                 <!-- svelte-ignore a11y-invalid-attribute -->
                 <button
@@ -136,7 +162,6 @@ function openFolder() {
 }
 .container {
     @apply flex h-full w-full flex-col overflow-hidden pb-3;
-    @apply divide-y divide-stone-600;
 }
 
 .primary {

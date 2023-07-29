@@ -13,6 +13,7 @@ import { Howl } from 'howler';
 import TrackDetails from './components/TrackDetails.svelte';
 import PlaybackControls from './components/PlaybackControls.svelte';
 import { onDestroy } from 'svelte';
+import { handleConfirm } from './components/ModalConcert.svelte';
 
 export let playlist: ClientSong[];
 export let song: ClientSong;
@@ -42,11 +43,33 @@ function onPlaylistSet() {
 
 $: onSongChange(song);
 function onSongChange(nextSong: ClientSong) {
-    if (prevSong?.howl) {
+    if (!!prevSong?.howl) {
         prevSong.howl.stop();
         prevSong.howl = null;
+        prevSong = prevSong;
     }
     prevSong = nextSong;
+
+    if (!song) return;
+
+    timer = formatTime(Math.round(0));
+    progressWidth = 0;
+    if (!song?.howl) {
+        song.howl = new Howl({
+            src: [song.filePath],
+            html5: true,
+            onplay: function () {
+                duration = formatTime(Math.round(song.howl.duration()));
+
+                setPlayAnimation();
+            },
+            onend: function () {
+                skipNext();
+                isPlaying = false;
+            }
+        });
+        song = song;
+    }
 }
 
 let playInterval;
@@ -85,6 +108,7 @@ function play() {
                 isPlaying = false;
             }
         });
+        song = song;
     }
     data.howl.play();
     setPlayAnimation();
@@ -124,9 +148,11 @@ function skipPrev() {
 function seek(time) {
     var sound = song.howl;
     if (!sound) return;
-
-    sound.seek(sound.duration() * time);
-    if (sound.playing()) setPlayAnimation();
+    const timestamp = formatTime(Math.round(sound.duration() * time));
+    handleConfirm('skip to: ' + timestamp, () => {
+        sound.seek(sound.duration() * time);
+        if (sound.playing()) setPlayAnimation();
+    });
 }
 
 function seekToTime(event) {
@@ -153,14 +179,14 @@ onDestroy(() => {
     </div>
     {#if isPlaying}
         <div class="flex pointer-events-none absolute z-400">
-            <img src="/Froge.gif" class=" left-1/3" alt="frog dance" />
+            <img src="Froge.gif" class=" left-1/3" alt="frog dance" />
             <img src="frogmusicnotes.gif" alt="frog dance 2" />
         </div>
     {/if}
     <div class="w-full">
         <!-- svelte-ignore a11y-click-events-have-key-events -->
         <div
-            class="progress bg-slate-500 overflow-hidden rounded-full"
+            class="progress bg-slate-500 overflow-hidden rounded-full cursor-pointer"
             id="seek"
             bind:clientWidth={offsetWidth}
             on:click={(e) => seekToTime(e)}

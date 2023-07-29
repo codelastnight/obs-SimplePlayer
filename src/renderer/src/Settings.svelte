@@ -1,6 +1,6 @@
 <script>
 import { Howler } from 'howler';
-import { onMount } from 'svelte';
+import { onMount, onDestroy } from 'svelte';
 import Fa from 'svelte-fa';
 import {
     faVolumeMute,
@@ -19,21 +19,21 @@ $: concertMode.set(concert);
 onMount(() => {
     async function checkSettings() {
         const settings = await eAPI.dataGet('settings');
-        const getpath = await eAPI.dataGet('path');
 
-        if (settings !== undefined && settings.type === 'ok') {
-            if (settings.data.volume) slider = settings.data.volume;
-        }
-
-        if (getpath !== undefined && getpath.type === 'ok') {
-            if (getpath.data.path !== undefined)
-                eAPI.handleScanDir(getpath.data.path.toString());
+        if (!!settings && settings.type === 'ok') {
+            if (!!settings.data.volume) slider = settings.data.volume;
+            if (!!settings.data.mute) mute = settings.data.mute;
         }
     }
 
     checkSettings();
 });
-
+onDestroy(() => {
+    eAPI.dataSet({
+        key: 'settings',
+        value: { mute: mute, volume: slider }
+    });
+});
 eAPI.handleSaveSetting((_) => {
     eAPI.dataSet({
         key: 'settings',
@@ -50,6 +50,7 @@ function togglemute() {
         Howler.volume(0);
     }
     eAPI.dataSet({ key: 'settings', value: { mute: mute, volume: slider } });
+    eAPI.dataGet('settings').then((a) => console.log(a));
 }
 $: {
     Howler.volume(slider / 100);

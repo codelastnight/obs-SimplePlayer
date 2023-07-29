@@ -83,24 +83,18 @@ function createWindow() {
     }
 
     win.webContents.once('dom-ready', () => {
-        const path = store.get('path');
-
         launchServer();
 
         return; // temp
-        if (path === undefined) return;
-        //  logging(path)
-        scanDir(path);
     });
 
     ipcMain.on('data:set', (e, data) => {
-        let combine = {};
         const combinedData = store.get(data.key);
-        if (combinedData == undefined) return false;
-
-        combine = combinedData;
-
-        store.set(data.key, { ...combine, ...data.value });
+        if (!combinedData) {
+            store.set(data.key, data.value);
+        } else {
+            store.set(data.key, { ...combinedData, ...data.value });
+        }
 
         return true;
     });
@@ -110,31 +104,43 @@ function createWindow() {
 
         return { type: 'ok', data: data };
     });
-    ipcMain.handle('data:about', async (e, key) => {
+    ipcMain.handle('data:about', async (_, key) => {
         const version = app.getVersion();
         return { version: version };
     });
-    ipcMain.on('dir:open', (e) => {
+    ipcMain.on('dir:open', () => {
         openFolderDialog();
     });
 
-    ipcMain.on('dir:scan', async (e, path) => {
+    ipcMain.on('dir:scan', async (_, filePath) => {
+        if (!win) return;
         if (scan) scan.cancel();
-        scan = scanDir();
+        console.log(filePath);
+        win.webContents.send('files:selected', { dir: filePath, done: false });
+        // attempt to prevent race conditions lol
+        setTimeout(async function () {
+            store.set('path', filePath);
+            if (scan) scan.cancel(); // stop existing search
+            scan = scanDir();
+            await scan.start(filePath);
+            win?.webContents.send('files:selected', {
+                dir: filePath,
+                done: true
+            });
 
-        await scan.start(path);
-        watchDir(path);
+            //watchDir(filePath);
+        }, 50);
     });
-    ipcMain.on('dir:scan:cancel', async (e) => {
+    ipcMain.on('dir:scan:cancel', async () => {
         scan.cancel();
     });
-    ipcMain.on('win:close', (e) => {
+    ipcMain.on('win:close', () => {
         win?.close();
     });
-    ipcMain.on('win:min', (e) => {
+    ipcMain.on('win:min', () => {
         win?.minimize();
     });
-    ipcMain.on('data:checkUpdate', (e) => {
+    ipcMain.on('data:checkUpdate', () => {
         checkForUpdate();
     });
     win.on('close', (e) => {
@@ -153,8 +159,8 @@ function createWindow() {
     // Emitted when the window is closed.
     win.on('closed', () => {
         win = null;
-        const a = child.kill();
-        console.log(a);
+        child.kill();
+        if (scan) scan.cancel();
     });
     // Open the DevTools if (isDev)
 }
@@ -189,6 +195,8 @@ app.on('window-all-closed', () => {
 ipcMain.on('closed', () => {
     status = 1;
     win = null;
+    if (scan) scan.cancel();
+    const a = child.kill();
 
     if (process.platform !== 'darwin') {
         app.quit();
@@ -215,7 +223,7 @@ async function openFolderDialog() {
         win?.webContents.send('files:selected', { dir: filePath, done: true });
 
         //watchDir(filePath);
-    }, 50);
+    }, 500);
 }
 import type { Song } from './parseMetadata';
 
