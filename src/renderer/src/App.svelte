@@ -5,7 +5,7 @@ import { sortDefault, sortByArtist, sortByDate, sortByTitle } from './helpers';
 import { state, song, isPlaying } from './store';
 import { Modals, closeModal } from 'svelte-modals';
 
-import Playlist from './Playlist.svelte';
+import Playlist, { onPlaylistAdd } from './Playlist.svelte';
 import Settings from './Settings.svelte';
 import Player, { ClientSong } from './Player.svelte';
 import ObsSettings from './components/OBSSettings.svelte';
@@ -14,7 +14,7 @@ import { fade } from 'svelte/transition';
 import StandbyMode from './StandbyMode.svelte';
 
 const eAPI = window.api;
-
+const type = 'track';
 let socket: Socket;
 
 let playlist: ClientSong[] = [];
@@ -22,7 +22,7 @@ let path = '';
 //let song: ClientSong;
 //let songPlaying = false;
 
-onMount(() => {
+function startServerConnection() {
     // connect to server
     socket = io('http://localhost:9990', {});
 
@@ -39,16 +39,18 @@ onMount(() => {
         state.set('disconnect');
     });
     socket.on('ask4update', function (msg) {
-        if (msg === 'pls') {
-            updateOBS();
-        }
+        if (msg === 'pls') updateOBS();
     });
+}
+
+onMount(() => {
+    startServerConnection();
 
     async function checkSettings() {
-        const getpath = await eAPI.dataGet('track');
+        const getpath = await eAPI.dataGet(type);
         if (!!getpath && getpath.type === 'ok') {
             if (!getpath.data) return;
-            eAPI.handleScanDir('track', getpath.data);
+            eAPI.handleScanDir(type, getpath.data);
             path = getpath.data;
         }
     }
@@ -85,24 +87,23 @@ eAPI.handleSortChange((_, arg) => {
 });
 
 eAPI.onPlaylistChanged(async (_, data) => {
-    if (data.type !== 'track') return;
+    if (data.type !== type) return;
 
     if ($isPlaying) isPlaying.set(false);
 
     if (!data.done) {
         playlist = [];
         console.log('playlist load');
-        const getpath = await eAPI.dataGet('path');
+        const getpath = await eAPI.dataGet(type);
         if (!getpath?.data) return;
         path = getpath.data;
     }
 });
-
+eAPI.onPlaylistAdd(async (_, data) => {
+    onPlaylistAdd(type, playlist, data);
+});
 function onModalKeyPress(e) {
-    if (e.key === 'Escape') {
-        // write your logic here.
-        closeModal();
-    }
+    if (e.key === 'Escape') closeModal();
 }
 </script>
 
@@ -113,7 +114,7 @@ function onModalKeyPress(e) {
     </div>
 
     <section class="relative w-full h-full flex flex-col overflow-y-hidden">
-        <Playlist bind:playlist bind:path />
+        <Playlist bind:playlist {path} type="track" />
         <StandbyMode />
     </section>
     <section

@@ -1,3 +1,30 @@
+<script context="module">
+export function onPlaylistAdd(type, playlist, data) {
+    if (type !== data.type) return playlist;
+    if (playlist.some((item) => item.filePath === data.metadata.filePath))
+        return playlist;
+
+    const i = playlist.length;
+
+    return [
+        ...playlist,
+        {
+            ...data.metadata,
+            index: i
+        }
+    ];
+}
+// export function onPlaylistRemove(type, playlist, data) {
+//     if (playlist.length === 0 || type !== data.type) return playlist;
+
+//     const remIndex = playlist.findIndex((x) => x.filePath == data.path);
+//     if (remIndex == -1) return;
+
+//     playlist.splice(remIndex, 1);
+//     return playlist;
+// }
+</script>
+
 <script lang="ts">
 import Fa from 'svelte-fa';
 import { faFrog } from '@fortawesome/free-solid-svg-icons';
@@ -39,29 +66,6 @@ eAPI.onPlaylistChanged(async (_, data) => {
         song.set(playlist[0]);
         console.log('playlist finish load');
     }
-});
-eAPI.onPlaylistAdd(async (_, listtype, metadata) => {
-    if (!playlist || type !== listtype) return;
-    if (playlist.some((item) => item.filePath === metadata.filePath)) return;
-
-    const i = playlist.length;
-
-    playlist = [
-        ...playlist,
-        {
-            ...metadata,
-            index: i
-        }
-    ];
-});
-eAPI.onPlaylistRemoved((_, type, path) => {
-    if (!playlist || type !== listtype) return;
-
-    const remIndex = playlist.findIndex((x) => x.filePath == path);
-    if (remIndex == -1) return;
-
-    playlist.splice(remIndex, 1);
-    playlist = playlist;
 });
 </script>
 

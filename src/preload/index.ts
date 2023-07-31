@@ -13,21 +13,23 @@ const api = {
     handleSaveSetting: (callback) => ipcRenderer.on('save-settings', callback),
     handleLastPlayed: (callback) => ipcRenderer.on('last-played', callback),
     handleSortChange: (callback) => ipcRenderer.on('sort-change', callback),
-    onPlaylistChanged: (callback: (e, data: { type; dir; done }) => void) =>
-        ipcRenderer.on('files:selected', callback),
-    onPlaylistAdd: (callback: (e, type: listType, song: Song) => void) =>
+    onPlaylistChanged: (
+        callback: (
+            e,
+            data: { type: listType; dir: string; done: boolean }
+        ) => void
+    ) => ipcRenderer.on('files:selected', callback),
+    onPlaylistAdd: (callback: (e, { type: listType, song: Song }) => void) =>
         ipcRenderer.on('playlist:add', callback),
     onPlaylistRemoved: (callback: (e, type: listType, path: string) => void) =>
         ipcRenderer.on('playlist:remove', callback),
     handleClosed: () => ipcRenderer.send('closed'),
     handleScanDir: (type: listType, path: string) =>
         ipcRenderer.send('dir:scan', type, path),
-    cancelScanDir: () => ipcRenderer.send('dir:scan:cancel'),
+    cancelScanDir: (type: listType) =>
+        ipcRenderer.send('dir:scan:cancel', type),
     openDir: (type: listType) => ipcRenderer.send('dir:open', type),
     logging: (callback) => ipcRenderer.on('logging', callback),
-    fsStatSync: (path: string) => statSync(path),
-    parseMetadata: (filePath: string) => parseMetadata(filePath),
-    pathSep: () => sep,
     winClose: () => ipcRenderer.send('win:close'),
     winMinimize: () => ipcRenderer.send('win:min'),
     getAboutData: (callback) => ipcRenderer.invoke('data:about', callback),

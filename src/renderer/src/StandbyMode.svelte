@@ -1,7 +1,7 @@
 <script>
 import { crossfade, fade, fly } from 'svelte/transition';
 import { quintOut } from 'svelte/easing';
-import Playlist from './Playlist.svelte';
+import Playlist, { onPlaylistAdd, onPlaylistRemove } from './Playlist.svelte';
 import { isPlaying } from './store';
 import { onMount } from 'svelte';
 import Fa from 'svelte-fa';
@@ -10,6 +10,7 @@ const eAPI = window.api;
 let isOpen = false;
 let playlist;
 let path = '';
+const type = 'standby';
 const [send, receive] = crossfade({
     duration: (d) => Math.sqrt(d * 200),
 
@@ -29,10 +30,10 @@ const [send, receive] = crossfade({
 });
 onMount(() => {
     async function checkSettings() {
-        const getpath = await eAPI.dataGet('standby');
+        const getpath = await eAPI.dataGet(type);
         if (!!getpath && getpath.type === 'ok') {
             if (!getpath.data) return;
-            eAPI.handleScanDir('standby', getpath.data);
+            eAPI.handleScanDir(type, getpath.data);
             path = getpath.data;
         }
     }
@@ -40,15 +41,21 @@ onMount(() => {
 });
 
 eAPI.onPlaylistChanged(async (_, data) => {
-    if (data.type !== 'standby') return;
-    if ($isPlaying) isPlaying.set(false);
+    if (data.type !== type) return;
     if (!data.done) {
+        if ($isPlaying) isPlaying.set(false);
+
         playlist = [];
         console.log('playlist load');
-        const getpath = await eAPI.dataGet('standby');
+        const getpath = await eAPI.dataGet(type);
         if (!getpath?.data) return;
         path = getpath.data;
+    } else {
+        console.log('playlist done:', playlist);
     }
+});
+eAPI.onPlaylistAdd(async (_, data) => {
+    onPlaylistAdd(type, playlist, data);
 });
 </script>
 

@@ -13,7 +13,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import { join, resolve } from 'path';
 import { readdir, stat } from 'fs/promises';
 
-import { parseMetadata, parseMetadataFiles } from './parseMetadata';
+import { parseMetadata } from './parseMetadata';
 import { watch } from 'chokidar';
 import Store from 'electron-store';
 
@@ -36,7 +36,15 @@ function checkForUpdate() {
     autoUpdater.logger = require('electron-log');
     autoUpdater.checkForUpdatesAndNotify();
 }
-let scan: ReturnType<typeof scanDir>;
+interface scanobj {
+    standby: ReturnType<typeof scanDir> | null;
+    track: ReturnType<typeof scanDir> | null;
+}
+
+let scan: scanobj = {
+    standby: null,
+    track: null
+};
 
 export interface updateData {
     type: 'available' | 'error' | 'downloaded' | 'unavailable' | 'none';
@@ -88,7 +96,7 @@ function createWindow() {
         return; // temp
     });
 
-    ipcMain.on('data:set', (e, data) => {
+    ipcMain.on('data:set', (_, data) => {
         const combinedData = store.get(data.key);
         if (!combinedData) {
             store.set(data.key, data.value);
@@ -98,46 +106,48 @@ function createWindow() {
 
         return true;
     });
-    ipcMain.handle('data:get', async (e, key) => {
+    // data store ipc
+    ipcMain.handle('data:get', async (_, key) => {
         const data = store.get(key);
         if (data == undefined) return { type: 'unsaved', data: null };
 
         return { type: 'ok', data: data };
     });
-    ipcMain.handle('data:about', async (_, key) => {
+    ipcMain.handle('data:about', async (_) => {
         const version = app.getVersion();
         return { version: version };
     });
+    // directory ipc
     ipcMain.on('dir:open', (_, type) => {
         openFolderDialog(type);
     });
 
     ipcMain.on('dir:scan', async (_, type, filePath) => {
         if (!win) return;
-        if (scan) scan.cancel();
-        console.log(filePath);
+        if (scan[type]) scan[type].cancel();
         win.webContents.send('files:selected', {
             type,
             dir: filePath,
             done: false
         });
+
         // attempt to prevent race conditions lol
         setTimeout(async function () {
             store.set(type, filePath);
-            if (scan) scan.cancel(); // stop existing search
-            scan = scanDir(type);
-            await scan.start(filePath);
+            scan[type] = scanDir(type);
+            await scan[type].start(filePath);
             win?.webContents.send('files:selected', {
                 type,
                 dir: filePath,
                 done: true
             });
+            console.log('scan directory completed:', type);
 
             //watchDir(filePath);
         }, 50);
     });
-    ipcMain.on('dir:scan:cancel', async () => {
-        scan.cancel();
+    ipcMain.on('dir:scan:cancel', async (_, type: listType) => {
+        scan[type]?.cancel();
     });
     ipcMain.on('win:close', () => {
         win?.close();
@@ -165,19 +175,17 @@ function createWindow() {
     win.on('closed', () => {
         win = null;
         child.kill();
-        if (scan) scan.cancel();
+        for (const scanner of Object.values(scan)) {
+            if (scanner) scanner.cancel();
+        }
     });
     // Open the DevTools if (isDev)
 }
 
 app.whenReady().then(() => {
-    electronApp.setAppUserModelId('com.artsandcrafts');
+    electronApp.setAppUserModelId('artsandcrafts');
     createWindow();
     checkForUpdate();
-    // protocol.registerFileProtocol('file', (request, callback) => {
-    //     const pathname = decodeURI(request.url.replace('file:///', ''));
-    //     callback(pathname);
-    // });
 });
 
 app.on('activate', () => {
@@ -200,8 +208,10 @@ app.on('window-all-closed', () => {
 ipcMain.on('closed', () => {
     status = 1;
     win = null;
-    if (scan) scan.cancel();
-    const a = child.kill();
+    for (const scanner of Object.values(scan)) {
+        if (scanner) scanner.cancel();
+    }
+    child.kill();
 
     if (process.platform !== 'darwin') {
         app.quit();
@@ -226,9 +236,9 @@ async function openFolderDialog(type: listType) {
     // attempt to prevent race conditions lol
     setTimeout(async function () {
         store.set(type, filePath);
-        if (scan) scan.cancel(); // stop existing search
-        scan = scanDir(type);
-        await scan.start(filePath);
+        if (scan[type]) scan[type]?.cancel(); // stop existing search
+        scan[type] = scanDir(type);
+        await scan[type]?.start(filePath);
         win?.webContents.send('files:selected', { type, filePath, done: true });
 
         //watchDir(filePath);
@@ -244,18 +254,21 @@ function checkIfAudioFile(file: string) {
     return (
         file.endsWith('.mp3') ||
         file.endsWith('.m4a') ||
-        file.endsWith('.webm') ||
         file.endsWith('.wav') ||
         file.endsWith('.aac') ||
         file.endsWith('.ogg') ||
+        file.endsWith('.webm') ||
         file.endsWith('.opus')
     );
 }
+
+export interface playlistAdd {}
 function scanDir(type: listType) {
     let isCancelled = false;
 
     async function walk(dir: string) {
         if (isCancelled) return;
+        console.log('scan directory started:', type);
 
         try {
             const list = await readdir(dir);
@@ -272,7 +285,8 @@ function scanDir(type: listType) {
                 } else if (checkIfAudioFile(file)) {
                     ///
                     const metadata = await parseMetadata(path);
-                    win?.webContents.send('playlist:add', type, metadata);
+
+                    win?.webContents.send('playlist:add', { type, metadata });
                 }
             }
         } catch (e) {
@@ -289,7 +303,7 @@ function scanDir(type: listType) {
     // cancel the recursion
     function cancelWalk() {
         isCancelled = true;
-        console.log('scan directory cancelled');
+        console.log('scan directory cancelled:', type);
         win?.webContents.send('files:selected', { type, dir: '', done: true });
     }
 

@@ -15,6 +15,7 @@ let loading;
 const eAPI = window.api;
 
 function reloadFolder() {
+    console.log(path, type);
     handleConfirm('reload folder', () => {
         if (!path) return;
         eAPI.handleScanDir(type, path);
@@ -52,7 +53,10 @@ eAPI.onPlaylistChanged(async (_, data) => {
         </button>
     </div>
 {:else}
-    <button class="primary text-sm" on:click={() => window.api.cancelScanDir()}>
+    <button
+        class="primary text-sm"
+        on:click={() => window.api.cancelScanDir(type)}
+    >
         <Fa icon={faCircleNotch} size="sm" spin={true} />
         Cancel Loading
     </button>
