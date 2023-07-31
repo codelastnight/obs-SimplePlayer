@@ -31,7 +31,7 @@ import { faFrog } from '@fortawesome/free-solid-svg-icons';
 import { handleConfirm } from './components/ModalConcert.svelte';
 import FileLoadButton from './components/FileLoadButton.svelte';
 import type { ClientSong } from './Player.svelte';
-import { song } from './store';
+import { activePlaylist, song } from './store';
 export let playlist: ClientSong[];
 export let title = 'Track List';
 export let path = '';
@@ -56,15 +56,17 @@ function filterPlaylist(playerObj) {
 function changeSong(number) {
     handleConfirm('change song', () => {
         song.set(playlist.find((item) => item.index === number));
+        if ($activePlaylist.type !== type)
+            activePlaylist.set({ type, playlist });
     });
 }
 
 eAPI.onPlaylistChanged(async (_, data) => {
     if (data.type !== type) return;
-    loading = !data.done;
-    if (!loading) {
-        song.set(playlist[0]);
-        console.log('playlist finish load');
+    loading = data.loading;
+    if (data.loading) {
+        //song.set(playlist[0]);
+        console.log('playlist finish load ', type);
     }
 });
 </script>
@@ -105,7 +107,7 @@ eAPI.onPlaylistChanged(async (_, data) => {
                     class="w-full cursor-pointer flex gap-x-2 items-center py-3 px-3 text-start hover:bg-amber-900/10 truncate"
                     on:click={() => changeSong(track?.index)}
                 >
-                    {#if $song && $song?.index === track?.index}
+                    {#if $song && $song?.filePath === track?.filePath}
                         <div class="w-[25px]">🐸</div>
                     {:else}
                         <div class="w-[25px]" />
@@ -113,7 +115,7 @@ eAPI.onPlaylistChanged(async (_, data) => {
                     <div class="truncate w-full">
                         <p
                             class={`font-md truncate w-full ${
-                                $song?.index === track?.index
+                                $song?.filePath === track?.filePath
                                     ? 'text-white font-bold '
                                     : ''
                             }`}

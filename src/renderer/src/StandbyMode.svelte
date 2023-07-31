@@ -1,8 +1,7 @@
 <script>
-import { crossfade, fade, fly } from 'svelte/transition';
-import { quintOut } from 'svelte/easing';
-import Playlist, { onPlaylistAdd, onPlaylistRemove } from './Playlist.svelte';
-import { isPlaying } from './store';
+import { fade, fly } from 'svelte/transition';
+import Playlist, { onPlaylistAdd } from './Playlist.svelte';
+import { activePlaylist, isPlaying } from './store';
 import { onMount } from 'svelte';
 import Fa from 'svelte-fa';
 import { faChevronUp, faChevronDown } from '@fortawesome/free-solid-svg-icons';
@@ -11,23 +10,7 @@ let isOpen = false;
 let playlist;
 let path = '';
 const type = 'standby';
-const [send, receive] = crossfade({
-    duration: (d) => Math.sqrt(d * 200),
 
-    fallback(node, _) {
-        const style = getComputedStyle(node);
-        const transform = style.transform === 'none' ? '' : style.transform;
-
-        return {
-            duration: 600,
-            easing: quintOut,
-            css: (t) => `
-					transform: ${transform} scale(${t});
-					opacity: ${t}
-				`
-        };
-    }
-});
 onMount(() => {
     async function checkSettings() {
         const getpath = await eAPI.dataGet(type);
@@ -42,7 +25,7 @@ onMount(() => {
 
 eAPI.onPlaylistChanged(async (_, data) => {
     if (data.type !== type) return;
-    if (!data.done) {
+    if (data.loading) {
         if ($isPlaying) isPlaying.set(false);
 
         playlist = [];
@@ -51,11 +34,11 @@ eAPI.onPlaylistChanged(async (_, data) => {
         if (!getpath?.data) return;
         path = getpath.data;
     } else {
-        console.log('playlist done:', playlist);
+        if (isOpen) activePlaylist.set({ type, playlist });
     }
 });
 eAPI.onPlaylistAdd(async (_, data) => {
-    onPlaylistAdd(type, playlist, data);
+    playlist = onPlaylistAdd(type, playlist, data);
 });
 </script>
 
@@ -107,7 +90,7 @@ eAPI.onPlaylistAdd(async (_, data) => {
     @apply left-0 top-0 z-0 h-full w-full bg-stone-900/75;
 }
 .container {
-    @apply absolute z-10  mt-10 h-full w-full bg-blue-900;
+    @apply absolute z-10  mt-7 h-full w-full bg-blue-900;
     @apply rounded-xl;
 }
 </style>

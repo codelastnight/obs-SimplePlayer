@@ -1,51 +1,70 @@
 <script context="module" lang="ts">
 import type { Song } from '../../main/parseMetadata';
-
 export interface ClientSong extends Song {
     // name: string;
+    howl?: Howl;
     index: number;
 }
 </script>
 
 <script lang="ts">
 import { Howl } from 'howler';
+import { fade } from 'svelte/transition';
 
 import TrackDetails from './components/TrackDetails.svelte';
 import PlaybackControls from './components/PlaybackControls.svelte';
 import { onDestroy } from 'svelte';
 import { handleConfirm } from './components/ModalConcert.svelte';
-import { song, isPlaying } from './store';
-export let playlist: ClientSong[];
-export let autoplay = false;
+import { song, isPlaying, activePlaylist } from './store';
+//export let playlist: ClientSong[];
+export let autoplay = true;
 
+let playlist: ClientSong[] = [];
+
+activePlaylist.subscribe((data) => {
+    console.log(data.type, 'playlist set in player', data.playlist);
+    playlist = data?.playlist;
+});
 let timer = 0;
 let duration = 0;
 let sound: Howl;
+let Prevsound: Howl;
 
 let offsetWidth;
 $: progressWidth = Math.round((timer / duration) * 100) || 0;
 
-$: if ($isPlaying) {
-    if ($song) play();
-} else {
-    if ($song) pause();
-}
-
-$: playlist, onPlaylistSet();
-function onPlaylistSet() {
-    if (!playlist) return;
-    if ($isPlaying) {
-        pause();
-        isPlaying.set(false);
-    }
-}
+// $: playlist, onPlaylistSet();
+// function onPlaylistSet() {
+//     if (!playlist) return;
+//     if ($isPlaying) {
+//         pause();
+//         isPlaying.set(false);
+//     }
+// }
 
 $: $song, onSongChange();
 function onSongChange() {
+    if (sound) {
+        Prevsound = sound;
+
+        Prevsound.fade(1, 0, 1000);
+        Prevsound.off('play');
+        Prevsound.off('fade');
+        Prevsound.off('end');
+        Prevsound.on('fade', () => {
+            if (!$song) return;
+
+            if (Prevsound === sound) return;
+            Prevsound.pause();
+
+            Prevsound.unload();
+            Prevsound = sound;
+        });
+    }
     if (!$song) return;
 
     timer = 0;
-    loadAudio(!!$song);
+    if (!!$song) loadAudio();
 }
 
 let playInterval;
@@ -57,47 +76,59 @@ function setPlayAnimation() {
         timer = sound.seek() || 0;
     }, 200);
 }
-function formatTime(secs: number) {
-    const rounded = Math.round(secs);
-    const minutes = Math.floor(rounded / 60) || 0;
-    const seconds = rounded - minutes * 60 || 0;
 
-    return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-}
-function loadAudio(shouldLoad) {
-    if (!shouldLoad) return;
-    if (!!sound) {
-        sound.pause();
-
-        sound.unload();
-    }
+function loadAudio() {
+    const currentsong = $song.title;
     sound = new Howl({
         src: [$song.filePath],
-        html5: true
+        html5: true,
+        volume: 0
     });
-    sound.on('load', () => {
+    sound.once('load', () => {
         duration = sound.duration();
+        if ($isPlaying) sound.play();
     });
     sound.on('play', () => {
+        console.log('song play:', currentsong);
+
         duration = sound.duration();
         setPlayAnimation();
+        if ($isPlaying) {
+            sound.fade(0, 1, 1000);
+        }
     });
     sound.on('end', () => {
+        console.log('song end:', currentsong);
         skipNext();
         isPlaying.set(autoplay);
     });
+    sound.on('fade', () => {
+        if (!$isPlaying) {
+            sound.pause();
+        }
+    });
+}
+
+$: if ($isPlaying) {
+    if ($song) play();
+} else {
+    if ($song) pause();
 }
 
 function play() {
-    loadAudio(!!$song && !sound);
+    if (!$isPlaying) return;
+    if (!!$song && !sound) loadAudio();
+
     sound.play();
     setPlayAnimation();
 }
 function pause() {
+    if ($isPlaying) return;
+
     if (!sound) return;
 
     clearInterval(playInterval);
-    sound.pause();
+    sound.fade(1, 0, 1000);
 }
 
 function skipNext() {
@@ -105,6 +136,7 @@ function skipNext() {
     const currentIndex = playlist.findIndex(
         (item) => item.filePath === $song.filePath
     );
+    console.log('skipnext:', playlist, currentIndex);
     let i = currentIndex + 1;
     if (i >= playlist.length) {
         i = 0;
@@ -138,9 +170,17 @@ function seek(time) {
 function seekToTime(event) {
     seek(event.offsetX / offsetWidth);
 }
+function formatTime(secs: number) {
+    const rounded = Math.round(secs);
+    const minutes = Math.floor(rounded / 60) || 0;
+    const seconds = rounded - minutes * 60 || 0;
+
+    return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+}
+
 onDestroy(() => {
     clearInterval(playInterval);
-    if (!!sound) sound.stop();
+    if (!!sound) sound.unload();
 });
 </script>
 
@@ -157,7 +197,10 @@ onDestroy(() => {
         />
     </div>
     {#if $isPlaying}
-        <div class="flex pointer-events-none absolute z-400">
+        <div
+            class="flex pointer-events-none absolute z-400"
+            transition:fade={{ duration: 1000 }}
+        >
             <img src="Froge.gif" class=" left-1/3" alt="frog dance" />
             <img src="frogmusicnotes.gif" alt="frog dance 2" />
         </div>

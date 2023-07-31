@@ -2,7 +2,7 @@
 import { Socket, io } from 'socket.io-client';
 import { onMount } from 'svelte';
 import { sortDefault, sortByArtist, sortByDate, sortByTitle } from './helpers';
-import { state, song, isPlaying } from './store';
+import { serverState, song, isPlaying, activePlaylist } from './store';
 import { Modals, closeModal } from 'svelte-modals';
 
 import Playlist, { onPlaylistAdd } from './Playlist.svelte';
@@ -30,13 +30,13 @@ function startServerConnection() {
         socket.emit('whoiam', 'sender');
     });
     socket.on('whouare', function () {
-        state.set('ready');
+        serverState.set('ready');
     });
     socket.on('disconnect', function () {
-        state.set('disconnect');
+        serverState.set('disconnect');
     });
     socket.on('connect_error', function () {
-        state.set('disconnect');
+        serverState.set('disconnect');
     });
     socket.on('ask4update', function (msg) {
         if (msg === 'pls') updateOBS();
@@ -91,16 +91,18 @@ eAPI.onPlaylistChanged(async (_, data) => {
 
     if ($isPlaying) isPlaying.set(false);
 
-    if (!data.done) {
+    if (data.loading) {
         playlist = [];
         console.log('playlist load');
         const getpath = await eAPI.dataGet(type);
         if (!getpath?.data) return;
         path = getpath.data;
+    } else {
+        activePlaylist.set({ type, playlist });
     }
 });
 eAPI.onPlaylistAdd(async (_, data) => {
-    onPlaylistAdd(type, playlist, data);
+    playlist = onPlaylistAdd(type, playlist, data);
 });
 function onModalKeyPress(e) {
     if (e.key === 'Escape') closeModal();

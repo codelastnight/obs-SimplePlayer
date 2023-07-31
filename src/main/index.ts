@@ -128,7 +128,7 @@ function createWindow() {
         win.webContents.send('files:selected', {
             type,
             dir: filePath,
-            done: false
+            loading: true
         });
 
         // attempt to prevent race conditions lol
@@ -139,7 +139,7 @@ function createWindow() {
             win?.webContents.send('files:selected', {
                 type,
                 dir: filePath,
-                done: true
+                loading: false
             });
             console.log('scan directory completed:', type);
 
@@ -217,7 +217,7 @@ ipcMain.on('closed', () => {
         app.quit();
     }
 });
-export type listType = 'standby' | 'track';
+export type listType = 'standby' | 'track' | 'none';
 async function openFolderDialog(type: listType) {
     if (!win) return;
     const result = await dialog

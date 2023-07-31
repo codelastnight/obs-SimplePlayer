@@ -1,11 +1,9 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
-import { Song, parseMetadata } from '../main/parseMetadata';
 
 import type { updateData, listType } from '../main/index';
 //const { contextBridge, ipcRenderer } = require('electron')
-import { statSync } from 'fs';
-import { sep } from 'path';
+
 // Custom APIs for renderer
 const api = {
     dataGet: (callback) => ipcRenderer.invoke('data:get', callback),
@@ -16,7 +14,7 @@ const api = {
     onPlaylistChanged: (
         callback: (
             e,
-            data: { type: listType; dir: string; done: boolean }
+            data: { type: listType; dir: string; loading: boolean }
         ) => void
     ) => ipcRenderer.on('files:selected', callback),
     onPlaylistAdd: (callback: (e, { type: listType, song: Song }) => void) =>
