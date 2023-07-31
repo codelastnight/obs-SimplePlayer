@@ -108,22 +108,27 @@ function createWindow() {
         const version = app.getVersion();
         return { version: version };
     });
-    ipcMain.on('dir:open', () => {
-        openFolderDialog();
+    ipcMain.on('dir:open', (_, type) => {
+        openFolderDialog(type);
     });
 
-    ipcMain.on('dir:scan', async (_, filePath) => {
+    ipcMain.on('dir:scan', async (_, type, filePath) => {
         if (!win) return;
         if (scan) scan.cancel();
         console.log(filePath);
-        win.webContents.send('files:selected', { dir: filePath, done: false });
+        win.webContents.send('files:selected', {
+            type,
+            dir: filePath,
+            done: false
+        });
         // attempt to prevent race conditions lol
         setTimeout(async function () {
-            store.set('path', filePath);
+            store.set(type, filePath);
             if (scan) scan.cancel(); // stop existing search
-            scan = scanDir();
+            scan = scanDir(type);
             await scan.start(filePath);
             win?.webContents.send('files:selected', {
+                type,
                 dir: filePath,
                 done: true
             });
@@ -202,8 +207,8 @@ ipcMain.on('closed', () => {
         app.quit();
     }
 });
-
-async function openFolderDialog() {
+export type listType = 'standby' | 'track';
+async function openFolderDialog(type: listType) {
     if (!win) return;
     const result = await dialog
         .showOpenDialog(win, { properties: ['openDirectory'] })
@@ -213,14 +218,18 @@ async function openFolderDialog() {
     if (result.canceled) return;
     const filePath = result.filePaths[0];
     if (!filePath || filePath[0] === 'undefined') return;
-    win.webContents.send('files:selected', { dir: filePath, done: false });
+    win.webContents.send('files:selected', {
+        type,
+        dir: filePath,
+        done: false
+    });
     // attempt to prevent race conditions lol
     setTimeout(async function () {
-        store.set('path', filePath);
+        store.set(type, filePath);
         if (scan) scan.cancel(); // stop existing search
-        scan = scanDir();
+        scan = scanDir(type);
         await scan.start(filePath);
-        win?.webContents.send('files:selected', { dir: filePath, done: true });
+        win?.webContents.send('files:selected', { type, filePath, done: true });
 
         //watchDir(filePath);
     }, 500);
@@ -242,7 +251,7 @@ function checkIfAudioFile(file: string) {
         file.endsWith('.opus')
     );
 }
-function scanDir() {
+function scanDir(type: listType) {
     let isCancelled = false;
 
     async function walk(dir: string) {
@@ -263,13 +272,17 @@ function scanDir() {
                 } else if (checkIfAudioFile(file)) {
                     ///
                     const metadata = await parseMetadata(path);
-                    win?.webContents.send('playlist:add', metadata);
+                    win?.webContents.send('playlist:add', type, metadata);
                 }
             }
         } catch (e) {
             console.error(e);
             isCancelled = true;
-            win?.webContents.send('files:selected', { dir: '', done: true });
+            win?.webContents.send('files:selected', {
+                type,
+                dir: '',
+                done: true
+            });
             return;
         }
     }
@@ -277,7 +290,7 @@ function scanDir() {
     function cancelWalk() {
         isCancelled = true;
         console.log('scan directory cancelled');
-        win?.webContents.send('files:selected', { dir: '', done: true });
+        win?.webContents.send('files:selected', { type, dir: '', done: true });
     }
 
     return {

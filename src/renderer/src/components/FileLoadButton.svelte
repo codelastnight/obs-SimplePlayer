@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { handleConfirm } from './ModalConcert.svelte';
 import Fa from 'svelte-fa';
 import {
@@ -9,6 +9,7 @@ import {
 
 export let path = '';
 export let showReload = false;
+export let type: 'standby' | 'track';
 let loading;
 
 const eAPI = window.api;
@@ -16,15 +17,16 @@ const eAPI = window.api;
 function reloadFolder() {
     handleConfirm('reload folder', () => {
         if (!path) return;
-        eAPI.handleScanDir(path);
+        eAPI.handleScanDir(type, path);
     });
 }
 function openFolder() {
     handleConfirm('open folder', () => {
-        eAPI.openDir();
+        eAPI.openDir(type);
     });
 }
 eAPI.onPlaylistChanged(async (_, data) => {
+    if (data.type !== type) return;
     loading = !data.done;
 });
 </script>

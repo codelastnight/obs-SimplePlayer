@@ -8,7 +8,7 @@ import { song } from './store';
 export let playlist: ClientSong[];
 export let title = 'Track List';
 export let path = '';
-
+export let type: 'standby' | 'track' = 'track';
 let loading;
 let search = '';
 const eAPI = window.api;
@@ -33,14 +33,15 @@ function changeSong(number) {
 }
 
 eAPI.onPlaylistChanged(async (_, data) => {
+    if (data.type !== type) return;
     loading = !data.done;
     if (!loading) {
         song.set(playlist[0]);
         console.log('playlist finish load');
     }
 });
-eAPI.onPlaylistAdd(async (_, metadata) => {
-    if (!playlist) return;
+eAPI.onPlaylistAdd(async (_, listtype, metadata) => {
+    if (!playlist || type !== listtype) return;
     if (playlist.some((item) => item.filePath === metadata.filePath)) return;
 
     const i = playlist.length;
@@ -53,8 +54,8 @@ eAPI.onPlaylistAdd(async (_, metadata) => {
         }
     ];
 });
-eAPI.onPlaylistRemoved((_, path) => {
-    if (!playlist) return;
+eAPI.onPlaylistRemoved((_, type, path) => {
+    if (!playlist || type !== listtype) return;
 
     const remIndex = playlist.findIndex((x) => x.filePath == path);
     if (remIndex == -1) return;
@@ -79,7 +80,7 @@ eAPI.onPlaylistRemoved((_, path) => {
             <p class="text-xs text-white/75">{path}</p>
         </div>
         {#if list.length !== 0}
-            <FileLoadButton showReload {path} />
+            <FileLoadButton showReload {path} {type} />
         {/if}
     </div>
 
@@ -87,7 +88,7 @@ eAPI.onPlaylistRemoved((_, path) => {
         <div class="grid place-items-center w-full h-1/2">
             <div class="flex flex-col items-center gap-2">
                 <p>click "open folder" 2 get started 🐸</p>
-                <FileLoadButton {path} />
+                <FileLoadButton {path} {type} />
             </div>
         </div>
     {:else}

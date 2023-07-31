@@ -45,10 +45,10 @@ onMount(() => {
     });
 
     async function checkSettings() {
-        const getpath = await eAPI.dataGet('path');
+        const getpath = await eAPI.dataGet('track');
         if (!!getpath && getpath.type === 'ok') {
             if (!getpath.data) return;
-            eAPI.handleScanDir(getpath.data);
+            eAPI.handleScanDir('track', getpath.data);
             path = getpath.data;
         }
     }
@@ -85,6 +85,8 @@ eAPI.handleSortChange((_, arg) => {
 });
 
 eAPI.onPlaylistChanged(async (_, data) => {
+    if (data.type !== 'track') return;
+
     if ($isPlaying) isPlaying.set(false);
 
     if (!data.done) {
