@@ -1,39 +1,56 @@
 <script lang="ts">
 import Fa from 'svelte-fa';
 import { faClose } from '@fortawesome/free-solid-svg-icons';
+import { fly } from 'svelte/transition';
 import { createEventDispatcher } from 'svelte';
-export let dialog;
+let dialog;
 export let title = '';
 export let fun = false;
 
 export let isOpen = false;
 
 const dispatch = createEventDispatcher();
-$: if (isOpen) {
-    dialog?.showModal();
-} else {
-    dialog?.close();
-}
+$: onOpen(isOpen);
 
+async function onOpen(open) {
+    if (open) {
+        if (dialog?.open) return;
+
+        setTimeout(() => {
+            dialog?.showModal();
+        }, 25);
+    } else {
+        if (dialog?.open) dialog?.close();
+    }
+}
 function onClose() {
-    dispatch('close');
     isOpen = false;
+
+    dispatch('close');
 }
 </script>
 
-<dialog bind:this={dialog} on:close={onClose} class={`${fun ? 'fun' : ''}`}>
-    <header class="flex justify-between items-center">
-        <p>{title}</p>
-        <button
-            type="button"
-            class="hover:bg-slate-600 p-2 rounded-xl"
-            on:click={() => dialog.close()}
-        >
-            <Fa icon={faClose} />
-        </button>
-    </header>
-    <slot />
-</dialog>
+{#if isOpen}
+    <dialog
+        bind:this={dialog}
+        on:close={onClose}
+        class:fun
+        transition:fly={{ y: 50 }}
+        on:cancel
+    >
+        <header class="flex justify-between items-center">
+            <p>{title}</p>
+            <button
+                type="button"
+                class="hover:bg-slate-600 p-2 rounded-xl"
+                on:click={() => onClose()}
+            >
+                <Fa icon={faClose} />
+            </button>
+        </header>
+        <slot />
+    </dialog>
+{/if}
 
 <style lang="postcss">
 dialog {

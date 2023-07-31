@@ -2,7 +2,7 @@
 import { Socket, io } from 'socket.io-client';
 import { onMount } from 'svelte';
 import { sortDefault, sortByArtist, sortByDate, sortByTitle } from './helpers';
-import { state } from './store';
+import { state, song, isPlaying } from './store';
 import { Modals, closeModal } from 'svelte-modals';
 
 import Playlist from './Playlist.svelte';
@@ -11,17 +11,16 @@ import Player, { ClientSong } from './Player.svelte';
 import ObsSettings from './components/OBSSettings.svelte';
 import Titlebar from './Titlebar.svelte';
 import { fade } from 'svelte/transition';
+import StandbyMode from './StandbyMode.svelte';
 
 const eAPI = window.api;
 
 let socket: Socket;
 
 let playlist: ClientSong[] = [];
-let song: ClientSong;
-let songPlaying = false;
-
-let obsSettingData;
-$: obsSettingData, updateOBS();
+let path = '';
+//let song: ClientSong;
+//let songPlaying = false;
 
 onMount(() => {
     // connect to server
@@ -44,12 +43,25 @@ onMount(() => {
             updateOBS();
         }
     });
+
+    async function checkSettings() {
+        const getpath = await eAPI.dataGet('path');
+        if (!!getpath && getpath.type === 'ok') {
+            if (!getpath.data) return;
+            eAPI.handleScanDir(getpath.data);
+            path = getpath.data;
+        }
+    }
+    checkSettings();
 });
 
+let obsSettingData;
+$: obsSettingData, updateOBS();
+$: $song, updateOBS();
 function updateOBS() {
     if (!socket) return;
 
-    const artist = song?.artist || '';
+    const artist = $song?.artist || '';
     socket.emit('update', {
         ...obsSettingData,
         artist: artist
@@ -58,7 +70,7 @@ function updateOBS() {
 
 eAPI.handleSortChange((_, arg) => {
     if (!playlist) return;
-    const i = song.index;
+    const i = $song.index;
 
     if (arg.items[0].checked)
         playlist = sortByDate(playlist, arg.items[6].checked);
@@ -69,49 +81,20 @@ eAPI.handleSortChange((_, arg) => {
     else if (arg.items[3].checked)
         playlist = sortDefault(playlist, arg.items[6].checked);
 
-    song = playlist.find((x) => x.index == i);
+    song.set(playlist.find((x) => x.index == i));
 });
 
 eAPI.onPlaylistChanged(async (_, data) => {
-    if (songPlaying) songPlaying = false;
+    if ($isPlaying) isPlaying.set(false);
 
     if (!data.done) {
         playlist = [];
         console.log('playlist load');
-    } else {
-        song = playlist[0];
-        updateOBS();
-        console.log('playlist finish load');
+        const getpath = await eAPI.dataGet('path');
+        if (!getpath?.data) return;
+        path = getpath.data;
     }
 });
-eAPI.onPlaylistAdd(async (_, metadata) => {
-    if (!playlist) return;
-    if (playlist.some((item) => item.filePath === metadata.filePath)) return;
-
-    const i = playlist.length;
-
-    playlist = [
-        ...playlist,
-        {
-            ...metadata,
-            howl: null,
-            index: i
-        }
-    ];
-});
-eAPI.onPlaylistRemoved((_, path) => {
-    if (!playlist) return;
-
-    const remIndex = playlist.findIndex((x) => x.filePath == path);
-    if (remIndex == -1) return;
-
-    playlist.splice(remIndex, 1);
-    playlist = playlist;
-});
-
-function playPlaylistSong(i: number) {
-    song = playlist.find((item) => item.index === i);
-}
 
 function onModalKeyPress(e) {
     if (e.key === 'Escape') {
@@ -124,27 +107,24 @@ function onModalKeyPress(e) {
 <svelte:body on:keyup={onModalKeyPress} />
 <main>
     <div class="col-span-2 h-fit">
-        <Titlebar songName={song?.title} isPlaying={songPlaying} />
+        <Titlebar songName={$song?.title} />
     </div>
 
-    <section class="w-full h-full flex flex-col overflow-y-hidden pr-[10px]">
-        <Playlist
-            {playlist}
-            {song}
-            on:changeSong={(event) => playPlaylistSong(event.detail.index)}
-        />
+    <section class="relative w-full h-full flex flex-col overflow-y-hidden">
+        <Playlist bind:playlist bind:path />
+        <StandbyMode />
     </section>
     <section
         class="flex flex-col h-full w-full pb-3 py-3 px-3 items-center justify-between"
     >
         <div class="flex gap-x-2 justify-end w-full items-center">
             <ObsSettings
-                {song}
+                song={$song}
                 on:update={(e) => (obsSettingData = e.detail)}
             />
         </div>
 
-        <Player {playlist} bind:song bind:isPlaying={songPlaying} />
+        <Player {playlist} />
 
         <Settings />
     </section>
@@ -178,7 +158,7 @@ html {
     @apply h-full;
 }
 main {
-    @apply grid h-full w-full grid-cols-2;
+    @apply grid h-full w-full grid-cols-2 gap-x-2;
     grid-template-rows: auto 1fr;
 }
 </style>

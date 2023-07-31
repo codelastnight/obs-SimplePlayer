@@ -1,14 +1,13 @@
 <script>
 import { createEventDispatcher } from 'svelte';
 import { handleConfirm } from './ModalConcert.svelte';
-
+import { isPlaying } from './../store';
 import Fa from 'svelte-fa';
 import {
     faStepBackward,
     faStepForward
 } from '@fortawesome/free-solid-svg-icons';
 
-export let isPlaying;
 export let disabled = false;
 const dispatch = createEventDispatcher();
 
@@ -24,9 +23,9 @@ function nextSong() {
     });
 }
 function playPause() {
-    const action = isPlaying ? 'pause' : 'play';
+    const action = $isPlaying ? 'pause' : 'play';
     handleConfirm(action, () => {
-        isPlaying = !isPlaying;
+        isPlaying.set(!$isPlaying);
     });
 }
 </script>
@@ -53,7 +52,7 @@ function playPause() {
         on:focus={(e) => e.target.blur()}
         on:click={playPause}
     >
-        {#if !isPlaying}
+        {#if !$isPlaying}
             <img src="play.png" alt="play song" class="w-[8rem]" />
         {:else}
             <img src="pause.png" alt="pause song" class="w-[8rem]" />

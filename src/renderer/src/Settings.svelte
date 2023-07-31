@@ -62,7 +62,7 @@ $: {
     <div class=" flex gap-x-1 items-center">
         <button
             type="button"
-            id="checkboxrn"
+            title="mute volume"
             on:click={togglemute}
             class="btn btn-primary-outline btn-lg justify-content-end hover:bg-slate-700 py-2 px-4 rounded-full"
         >
@@ -85,6 +85,7 @@ $: {
     <label
         class="flex items-center cursor-pointer relative rounded-full py-1 pl-3 pr-1 mr-1"
         class:concert
+        title="All actions will require an extra click"
     >
         <span class="pr-2 text-sm">Concert Mode</span>
 

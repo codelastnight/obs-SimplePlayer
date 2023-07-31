@@ -3,118 +3,97 @@ import type { Song } from '../../main/parseMetadata';
 
 export interface ClientSong extends Song {
     // name: string;
-    howl: Howl;
     index: number;
 }
 </script>
 
 <script lang="ts">
 import { Howl } from 'howler';
+
 import TrackDetails from './components/TrackDetails.svelte';
 import PlaybackControls from './components/PlaybackControls.svelte';
 import { onDestroy } from 'svelte';
 import { handleConfirm } from './components/ModalConcert.svelte';
-
+import { song, isPlaying } from './store';
 export let playlist: ClientSong[];
-export let song: ClientSong;
-export let isPlaying = false;
-let timer = '--:--';
-let duration = '--:--';
+export let autoplay = false;
+
+let timer = 0;
+let duration = 0;
+let sound: Howl;
 
 let offsetWidth;
-let progressWidth = 0;
+$: progressWidth = Math.round((timer / duration) * 100) || 0;
 
-let prevSong: ClientSong;
-
-$: if (isPlaying) {
-    if (song) play();
+$: if ($isPlaying) {
+    if ($song) play();
 } else {
-    if (song) pause();
+    if ($song) pause();
 }
 
 $: playlist, onPlaylistSet();
 function onPlaylistSet() {
     if (!playlist) return;
-    if (isPlaying) {
+    if ($isPlaying) {
         pause();
-        isPlaying = false;
+        isPlaying.set(false);
     }
 }
 
-$: onSongChange(song);
-function onSongChange(nextSong: ClientSong) {
-    if (!!prevSong?.howl) {
-        prevSong.howl.stop();
-        prevSong.howl = null;
-        prevSong = prevSong;
-    }
-    prevSong = nextSong;
+$: $song, onSongChange();
+function onSongChange() {
+    if (!$song) return;
 
-    if (!song) return;
-
-    timer = formatTime(Math.round(0));
-    progressWidth = 0;
-    if (!song?.howl) {
-        song.howl = new Howl({
-            src: [song.filePath],
-            html5: true,
-            onplay: function () {
-                duration = formatTime(Math.round(song.howl.duration()));
-
-                setPlayAnimation();
-            },
-            onend: function () {
-                skipNext();
-                isPlaying = false;
-            }
-        });
-        song = song;
-    }
+    timer = 0;
+    loadAudio(!!$song);
 }
 
 let playInterval;
 
 function setPlayAnimation() {
     playInterval = setInterval(() => {
-        const sound = song.howl;
         if (!sound) return;
 
-        const seek = sound.seek() || 0;
-        timer = formatTime(Math.round(seek));
-        progressWidth = (seek / sound.duration()) * 100 || 0;
-    }, 100);
+        timer = sound.seek() || 0;
+    }, 200);
 }
 function formatTime(secs: number) {
-    const minutes = Math.floor(secs / 60) || 0;
-    const seconds = secs - minutes * 60 || 0;
+    const rounded = Math.round(secs);
+    const minutes = Math.floor(rounded / 60) || 0;
+    const seconds = rounded - minutes * 60 || 0;
 
     return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
 }
+function loadAudio(shouldLoad) {
+    if (!shouldLoad) return;
+    if (!!sound) {
+        sound.pause();
+
+        sound.unload();
+    }
+    sound = new Howl({
+        src: [$song.filePath],
+        html5: true
+    });
+    sound.on('load', () => {
+        duration = sound.duration();
+    });
+    sound.on('play', () => {
+        duration = sound.duration();
+        setPlayAnimation();
+    });
+    sound.on('end', () => {
+        skipNext();
+        isPlaying.set(autoplay);
+    });
+}
 
 function play() {
-    const data = song;
-
-    if (!data.howl) {
-        data.howl = new Howl({
-            src: [data.filePath],
-            html5: true,
-            onplay: function () {
-                duration = formatTime(Math.round(data.howl.duration()));
-
-                setPlayAnimation();
-            },
-            onend: function () {
-                skipNext();
-                isPlaying = false;
-            }
-        });
-        song = song;
-    }
-    data.howl.play();
+    loadAudio(!!$song && !sound);
+    sound.play();
     setPlayAnimation();
 }
 function pause() {
-    const sound = song.howl;
     if (!sound) return;
 
     clearInterval(playInterval);
@@ -122,36 +101,37 @@ function pause() {
 }
 
 function skipNext() {
-    if (!playlist || !song) return;
+    if (!playlist || !$song) return;
     const currentIndex = playlist.findIndex(
-        (item) => item.filePath === song.filePath
+        (item) => item.filePath === $song.filePath
     );
     let i = currentIndex + 1;
     if (i >= playlist.length) {
         i = 0;
     }
-    song = playlist[i];
+    song.set(playlist[i]);
 }
 function skipPrev() {
-    if (!playlist || !song) return;
+    if (!playlist || !$song) return;
 
     const currentIndex = playlist.findIndex(
-        (item) => item.filePath === song.filePath
+        (item) => item.filePath === $song.filePath
     );
     let i = currentIndex - 1;
     if (i < 0) {
         i = playlist.length - 1;
     }
-    song = playlist[i];
+    song.set(playlist[i]);
 }
 
 function seek(time) {
-    var sound = song.howl;
     if (!sound) return;
-    const timestamp = formatTime(Math.round(sound.duration() * time));
+    const seek = sound.duration() * time;
+    const timestamp = formatTime(Math.round(seek));
     handleConfirm('skip to: ' + timestamp, () => {
-        sound.seek(sound.duration() * time);
+        sound.seek(seek);
         if (sound.playing()) setPlayAnimation();
+        else timer = seek;
     });
 }
 
@@ -160,24 +140,23 @@ function seekToTime(event) {
 }
 onDestroy(() => {
     clearInterval(playInterval);
-    song?.howl?.stop();
+    if (!!sound) sound.stop();
 });
 </script>
 
 <div class="player">
     <div class="justify-self-start w-full">
-        <TrackDetails {song} />
+        <TrackDetails song={$song} />
     </div>
 
     <div class="px-2 w-full">
         <PlaybackControls
             on:prevSong={skipPrev}
             on:nextSong={skipNext}
-            bind:isPlaying
-            disabled={!song}
+            disabled={!$song}
         />
     </div>
-    {#if isPlaying}
+    {#if $isPlaying}
         <div class="flex pointer-events-none absolute z-400">
             <img src="Froge.gif" class=" left-1/3" alt="frog dance" />
             <img src="frogmusicnotes.gif" alt="frog dance 2" />
@@ -201,8 +180,8 @@ onDestroy(() => {
             />
         </div>
         <div class=" flex justify-between w-full">
-            <div id="timer">{timer}</div>
-            <div id="duration">{duration}</div>
+            <div id="timer">{formatTime(timer)}</div>
+            <div id="duration">{formatTime(duration)}</div>
         </div>
     </div>
 </div>

@@ -9,14 +9,11 @@ import Dialog from './components/Dialog.svelte';
 import Marquee from 'svelte-fast-marquee';
 import { onMount } from 'svelte';
 import ObsStatusChip from './components/ObsStatusChip.svelte';
-import { concertMode } from './store';
-import { cubicOut } from 'svelte/easing';
+import { concertMode, isPlaying } from './store';
 export let songName;
-export let isPlaying;
 let version;
-let dialog;
 let updateStatus = 'none';
-
+let isOpen = false;
 const updateState = {
     none: 'check for updates',
     checking: 'looking for new update...',
@@ -40,15 +37,6 @@ function checkAppUpdate() {
     window.api.checkAppUpdate();
     updateStatus = 'checking';
 }
-
-// transition
-function scaleX(node, options) {
-    return {
-        duration: options.duration,
-        easing: cubicOut,
-        css: (t) => `width:${t * 100}%; transform-origin: center center;`
-    };
-}
 </script>
 
 <header>
@@ -56,7 +44,7 @@ function scaleX(node, options) {
         <button
             type="button"
             class="hover:bg-neutral-900"
-            on:click={() => dialog.showModal()}
+            on:click={() => (isOpen = true)}
         >
             <p>about</p>
         </button>
@@ -65,15 +53,15 @@ function scaleX(node, options) {
 
     <div
         class="overflow-hidden py-1 text-white transition-all w-[11rem] text-sm text-center"
-        class:badge={isPlaying || $concertMode}
-        class:badge-playing={isPlaying}
+        class:badge={$isPlaying || $concertMode}
+        class:badge-playing={$isPlaying}
         class:concert={$concertMode}
     >
-        {#if isPlaying}
+        {#if $isPlaying}
             <Marquee
                 direction="left"
-                play={isPlaying}
-                speed={$concertMode && isPlaying ? 20 : 25}
+                play={$isPlaying}
+                speed={$concertMode && $isPlaying ? 20 : 25}
             >
                 <p class="mx-3 text-clip">
                     <span class="text-white/75"> now playing: </span>
@@ -114,7 +102,7 @@ function scaleX(node, options) {
         </button>
     </div>
 </header>
-<Dialog bind:dialog fun on:close={() => (updateStatus = 'none')}>
+<Dialog bind:isOpen fun on:close={() => (updateStatus = 'none')}>
     <div class="flex flex-col items-center h-[50vh] w-[50vw] justify-between">
         <div class="flex flex-col items-center">
             <img src="logo.jpg" alt="frog logo" width="100rem" />
