@@ -28,7 +28,7 @@ function openFolder() {
 }
 eAPI.onPlaylistChanged(async (_, data) => {
     if (data.type !== type) return;
-    loading = !data.done;
+    loading = data.loading;
 });
 </script>
 

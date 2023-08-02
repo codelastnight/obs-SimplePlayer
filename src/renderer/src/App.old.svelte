@@ -512,7 +512,7 @@ $: if (player) {
             </div>
         {:else}
             <Playlist
-                {player}
+                {playlist}
                 on:changeSong={(event) => playPlaylistSong(event.detail.index)}
             />
         {/if}

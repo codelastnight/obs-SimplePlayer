@@ -129,7 +129,7 @@ function onModalKeyPress(e) {
             />
         </div>
 
-        <Player {playlist} />
+        <Player />
 
         <Settings />
     </section>

@@ -36,7 +36,6 @@ export let playlist: ClientSong[];
 export let title = 'Track List';
 export let path = '';
 export let type: 'standby' | 'track' = 'track';
-let loading;
 let search = '';
 const eAPI = window.api;
 
@@ -63,7 +62,6 @@ function changeSong(number) {
 
 eAPI.onPlaylistChanged(async (_, data) => {
     if (data.type !== type) return;
-    loading = data.loading;
     if (data.loading) {
         //song.set(playlist[0]);
         console.log('playlist finish load ', type);
