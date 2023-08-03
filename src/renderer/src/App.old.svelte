@@ -14,7 +14,7 @@ import {
 import Playlist from './Playlist.svelte';
 import TrackDetails from './components/TrackDetails.svelte';
 import PlaybackControls from './PlaybackControls.svelte';
-import Settings from './Settings.svelte';
+import Settings from './Options.svelte';
 
 import Fa from 'svelte-fa';
 

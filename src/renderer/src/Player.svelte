@@ -14,15 +14,19 @@ import TrackDetails from './components/TrackDetails.svelte';
 import PlaybackControls from './components/PlaybackControls.svelte';
 import { onDestroy } from 'svelte';
 import { handleConfirm } from './components/ModalConcert.svelte';
-import { song, isPlaying, activePlaylist } from './store';
+import { song, isPlaying, activePlaylist, settings } from './store';
 //export let playlist: ClientSong[];
-export let autoplay = true;
-
+let autoplay = true;
+$: fadeDuration = $settings.fade ? $settings.fadeValue : 1;
+$: console.log(fadeDuration);
 let playlist: ClientSong[] = [];
 
 activePlaylist.subscribe((data) => {
-    console.log(data.type, 'playlist set in player', data.playlist);
+    console.log(data.type, 'playlist set in player');
     playlist = data?.playlist;
+    if (data.type in $settings) {
+        autoplay = $settings[data.type].autoplay;
+    }
 });
 interface howlListProps {
     [key: string]: Howl;
@@ -56,7 +60,7 @@ function onSongChange() {
         const prevSound =
             prevSoundPath in howlList ? howlList[prevSoundPath] : undefined;
         if (!!prevSound) {
-            prevSound.fade(1, 0, 1000);
+            prevSound.fade(1, 0, fadeDuration);
             // prevSound.off('play');
             // prevSound.off('fade');
             // prevSound.off('end');
@@ -86,8 +90,6 @@ function setPlayAnimation() {
 }
 
 function loadAudio() {
-    const currentsong = $song.title;
-
     const howl = new Howl({
         src: [$song.filePath],
         html5: true,
@@ -98,16 +100,13 @@ function loadAudio() {
         if ($isPlaying) howl.play();
     });
     howl.on('play', () => {
-        console.log('song play:', currentsong);
-
         duration = howl.duration();
         setPlayAnimation();
         if ($isPlaying) {
-            howl.fade(0, 1, 1000);
+            howl.fade(0, 1, fadeDuration);
         }
     });
     howl.on('end', () => {
-        console.log('song end:', currentsong);
         skipNext();
         isPlaying.set(autoplay);
     });
@@ -142,7 +141,7 @@ function pause() {
     if (!sound) return;
 
     clearInterval(playInterval);
-    sound.fade(1, 0, 1000);
+    sound.fade(1, 0, fadeDuration);
     unloadUnusedAudio();
 }
 
@@ -151,7 +150,6 @@ function skipNext() {
     const currentIndex = playlist.findIndex(
         (item) => item.filePath === $song.filePath
     );
-    console.log('skipnext:', playlist, currentIndex);
     let i = currentIndex + 1;
     if (i >= playlist.length) {
         i = 0;
@@ -199,7 +197,6 @@ function formatTime(secs: number) {
 }
 function unloadUnusedAudio() {
     for (const [path, sound] of Object.entries(howlList)) {
-        console.log(path);
         if (path === prevSoundPath || path === $song.filePath) continue;
 
         sound.stop();
@@ -223,7 +220,7 @@ onDestroy(() => {
             disabled={!$song}
         />
     </div>
-    {#if $isPlaying}
+    {#if $isPlaying && $settings.frogMode}
         <div
             class="flex pointer-events-none absolute z-400"
             transition:fade={{ duration: 1000 }}

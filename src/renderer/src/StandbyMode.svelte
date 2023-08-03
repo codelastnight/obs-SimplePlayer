@@ -1,7 +1,7 @@
 <script>
 import { fade, fly } from 'svelte/transition';
 import Playlist, { onPlaylistAdd } from './Playlist.svelte';
-import { activePlaylist, isPlaying } from './store';
+import { activePlaylist } from './store';
 import { onMount } from 'svelte';
 import Fa from 'svelte-fa';
 import { faChevronUp, faChevronDown } from '@fortawesome/free-solid-svg-icons';
@@ -26,7 +26,7 @@ onMount(() => {
 eAPI.onPlaylistChanged(async (_, data) => {
     if (data.type !== type) return;
     if (data.loading) {
-        if ($isPlaying) isPlaying.set(false);
+        //if ($isPlaying) isPlaying.set(false);
 
         playlist = [];
         console.log('playlist load');

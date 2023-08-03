@@ -1,15 +1,15 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
 
-import type { updateData, listType } from '../main/index';
-//const { contextBridge, ipcRenderer } = require('electron')
+import type { updateData } from '../main/index';
+import { listType } from '../main/registerIpc';
 
 // Custom APIs for renderer
 const api = {
     dataGet: (callback) => ipcRenderer.invoke('data:get', callback),
     dataSet: (data) => ipcRenderer.send('data:set', data),
     handleSaveSetting: (callback) => ipcRenderer.on('save-settings', callback),
-    handleLastPlayed: (callback) => ipcRenderer.on('last-played', callback),
+    handleClosed: () => ipcRenderer.send('closed'),
     handleSortChange: (callback) => ipcRenderer.on('sort-change', callback),
     onPlaylistChanged: (
         callback: (
@@ -21,15 +21,15 @@ const api = {
         ipcRenderer.on('playlist:add', callback),
     onPlaylistRemoved: (callback: (e, type: listType, path: string) => void) =>
         ipcRenderer.on('playlist:remove', callback),
-    handleClosed: () => ipcRenderer.send('closed'),
+    //handleClosed: () => ipcRenderer.send('closed'),
     handleScanDir: (type: listType, path: string) =>
         ipcRenderer.send('dir:scan', type, path),
     cancelScanDir: (type: listType) =>
         ipcRenderer.send('dir:scan:cancel', type),
     openDir: (type: listType) => ipcRenderer.send('dir:open', type),
     logging: (callback) => ipcRenderer.on('logging', callback),
-    winClose: () => ipcRenderer.send('win:close'),
-    winMinimize: () => ipcRenderer.send('win:min'),
+    winClose: () => ipcRenderer.send('win:invoke', 'close'),
+    winMinimize: () => ipcRenderer.send('win:invoke', 'min'),
     getAboutData: (callback) => ipcRenderer.invoke('data:about', callback),
     checkAppUpdate: () => ipcRenderer.send('data:checkUpdate'),
     onAppUpdate: (callback: (e, arg: updateData) => void) =>

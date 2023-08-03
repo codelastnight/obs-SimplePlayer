@@ -39,14 +39,17 @@ function onClose() {
         on:cancel
     >
         <header class="flex justify-between items-center">
-            <p>{title}</p>
-            <button
-                type="button"
-                class="hover:bg-slate-600 p-2 rounded-xl"
-                on:click={() => onClose()}
-            >
-                <Fa icon={faClose} />
-            </button>
+            <div class="flex-1"></div>
+            <p class="">{title}</p>
+            <div class="flex-1 flex justify-end">
+                <button
+                    type="button"
+                    class="hover:bg-slate-600 p-2 rounded-xl"
+                    on:click={() => onClose()}
+                >
+                    <Fa icon={faClose} />
+                </button>
+            </div>
         </header>
         <slot />
     </dialog>
@@ -54,7 +57,7 @@ function onClose() {
 
 <style lang="postcss">
 dialog {
-    @apply min-w-[10rem] rounded-xl border border-stone-900 bg-slate-900;
+    @apply min-w-[10rem] rounded-xl border border-stone-900 bg-primary;
     @apply px-3 py-2 text-purple-100;
 }
 dialog::backdrop {

@@ -8,6 +8,7 @@ import {
     faWarning
 } from '@fortawesome/free-solid-svg-icons';
 import { concertMode } from './store';
+import Switch from './components/Switch.svelte';
 
 let slider = 50;
 let mute;
@@ -82,23 +83,11 @@ $: {
             id="myRange"
         />
     </div>
-    <label
-        class="flex items-center cursor-pointer relative rounded-full py-1 pl-3 pr-1 mr-1"
-        class:concert
-        title="All actions will require an extra click"
-    >
-        <span class="pr-2 text-sm">Concert Mode</span>
-
-        <input
-            bind:checked={concert}
-            class="sr-only"
-            role="switch"
-            type="checkbox"
-        />
-        <div
-            class="toggle-bg relative bg-slate-600 border border-slate-500 h-6 w-11 rounded-full"
-        />
-    </label>
+    <div class:bg-purple-900={concert} class="rounded-full">
+        <Switch flipLabel bind:checked={concert}>
+            <span class="text-sm">Concert Mode</span>
+        </Switch>
+    </div>
 </div>
 <div class="tip" class:invisible={!concert}>
     <Fa class="mt-0.5" icon={faWarning} />
@@ -109,20 +98,5 @@ $: {
 .tip {
     @apply flex w-full items-center justify-end gap-1;
     @apply text-xs text-yellow-300/80;
-}
-input:checked + .toggle-bg:after {
-    transform: translateX(100%);
-    @apply border-gray-200 bg-gray-200;
-}
-input:checked + .toggle-bg {
-    @apply border-green-300/25 bg-emerald-700;
-}
-.toggle-bg:after {
-    content: '';
-    @apply absolute left-[1px] top-[1px] h-5 w-5  rounded-full border border-gray-400 bg-gray-400 shadow-sm transition;
-}
-
-.concert {
-    @apply bg-purple-900;
 }
 </style>

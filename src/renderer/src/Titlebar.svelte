@@ -1,30 +1,19 @@
 <script>
+export let songName;
+
 import Fa from 'svelte-fa';
-import {
-    faClose,
-    faMinus,
-    faCircleNotch
-} from '@fortawesome/free-solid-svg-icons';
-import Dialog from './components/Dialog.svelte';
+import { faClose, faMinus } from '@fortawesome/free-solid-svg-icons';
 import Marquee from 'svelte-fast-marquee';
 import { onMount } from 'svelte';
 import ObsStatusChip from './components/ObsStatusChip.svelte';
 import { concertMode, isPlaying } from './store';
-export let songName;
+import About from './components/About.svelte';
+import Options from './components/Settings.svelte';
+
 let version;
-let updateStatus = 'none';
 let isOpen = false;
-const updateState = {
-    none: 'check for updates',
-    checking: 'looking for new update...',
-    available: 'update found! downloading...',
-    downloaded: 'updated downloaded. restart to install',
-    unavailable: 'no updates found',
-    error: 'error checking for update'
-};
-window.api.onAppUpdate((_, arg) => {
-    updateStatus = arg.type;
-});
+
+let optionIsOpen = false;
 onMount(() => {
     async function getAboutData() {
         const aboutData = await window.api.getAboutData();
@@ -32,23 +21,25 @@ onMount(() => {
     }
     getAboutData();
 });
-
-function checkAppUpdate() {
-    window.api.checkAppUpdate();
-    updateStatus = 'checking';
-}
 </script>
 
 <header>
-    <div class="flex-1 text-xs flex gap-2 items-center">
+    <div class="flex-1 text-xs gap-0.5 flex items-center">
         <button
             type="button"
-            class="hover:bg-neutral-900"
+            class="hover:bg-gray-700"
             on:click={() => (isOpen = true)}
         >
             <p>about</p>
         </button>
-        <p class="text-white/75">v{version}</p>
+        <button
+            type="button"
+            class="hover:bg-gray-700"
+            on:click={() => (optionIsOpen = true)}
+        >
+            <p>options</p>
+        </button>
+        <p class="text-white/75 px-3">v{version}</p>
     </div>
 
     <div
@@ -88,66 +79,22 @@ function checkAppUpdate() {
 
         <button
             type="button"
-            class="hover:bg-neutral-800 ml-3"
+            class="hover:bg-gray-700 ml-3"
             on:click={() => window.api.winMinimize()}
         >
             <Fa icon={faMinus} />
         </button>
         <button
             type="button"
-            class="hover:bg-red-800"
+            class="hover:bg-gray-700"
             on:click={() => window.api.winClose()}
         >
             <Fa icon={faClose} />
         </button>
     </div>
 </header>
-<Dialog bind:isOpen fun on:close={() => (updateStatus = 'none')}>
-    <div class="flex flex-col items-center h-[50vh] w-[50vw] justify-between">
-        <div class="flex flex-col items-center">
-            <img src="logo.jpg" alt="frog logo" width="100rem" />
-            <h1 class="font-bold text-2xl mb-3">
-                Frog Player :3
-                <span class="text-white/75 font-normal text-xl">
-                    v{version}
-                </span>
-            </h1>
-            <p>i love frogs!!!!</p>
-            <button
-                type="button"
-                class="bg-amber-700 hover:bg-neutral-900 disabled:opacity-80 disabled:pointer-events-none update"
-                on:click={checkAppUpdate}
-                disabled={updateStatus !== 'none'}
-            >
-                {#if updateStatus === 'checking' || updateStatus === 'available'}
-                    <Fa icon={faCircleNotch} spin />
-                {/if}
-                <p>{updateState[updateStatus]}</p>
-            </button>
-        </div>
-
-        <div class="flex flex-col items-center w-full">
-            <p class="mb-1">
-                made with 🐸 by <a
-                    href="https://artsandcrafts.work"
-                    target="_blank"
-                    class="underline text-blue-500">arts + crafts</a
-                >
-            </p>
-            <Marquee
-                pauseOnClick={true}
-                direction="left"
-                play={true}
-                speed={20}
-            >
-                <h1 class="px-4">FROG IS LIFE</h1>
-                <h2 class="px-4">AMPHIBIAN ETERNAL BLISS</h2>
-                <h1 class="px-4 uppercase">jewels of the rainforest</h1>
-                <h1 class="px-4">[++BLESSED HEAVEN++]</h1>
-            </Marquee>
-        </div>
-    </div>
-</Dialog>
+<About {version} bind:isOpen />
+<Options bind:isOpen={optionIsOpen} />
 
 <style lang="postcss">
 header {
@@ -159,9 +106,6 @@ button {
     @apply rounded px-2 py-1;
     -webkit-app-region: no-drag;
 }
-.update {
-    @apply flex items-center gap-1 rounded-full px-3 py-1;
-}
 
 .badge {
     @apply w-[12rem] rounded-full bg-slate-700;
@@ -170,8 +114,16 @@ button {
     width: 15rem;
 }
 .concert {
-    @apply bg-purple-900;
+    @apply bg-purple-900 font-bold;
+    background-size: 80%;
+    background-image: linear-gradient(
+            to bottom,
+            rgba(22, 29, 19, 0.4),
+            rgba(22, 29, 19, 0.4)
+        ),
+        var(--frog-concert);
 }
+
 .concert.badge-playing {
     @apply w-[17rem];
 }

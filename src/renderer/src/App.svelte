@@ -2,11 +2,17 @@
 import { Socket, io } from 'socket.io-client';
 import { onMount } from 'svelte';
 import { sortDefault, sortByArtist, sortByDate, sortByTitle } from './helpers';
-import { serverState, song, isPlaying, activePlaylist } from './store';
+import {
+    serverState,
+    song,
+    activePlaylist,
+    concertMode,
+    settings
+} from './store';
 import { Modals, closeModal } from 'svelte-modals';
 
 import Playlist, { onPlaylistAdd } from './Playlist.svelte';
-import Settings from './Settings.svelte';
+import Settings from './Options.svelte';
 import Player, { ClientSong } from './Player.svelte';
 import ObsSettings from './components/OBSSettings.svelte';
 import Titlebar from './Titlebar.svelte';
@@ -89,7 +95,7 @@ eAPI.handleSortChange((_, arg) => {
 eAPI.onPlaylistChanged(async (_, data) => {
     if (data.type !== type) return;
 
-    if ($isPlaying) isPlaying.set(false);
+    //if ($isPlaying) isPlaying.set(false);
 
     if (data.loading) {
         playlist = [];
@@ -110,7 +116,7 @@ function onModalKeyPress(e) {
 </script>
 
 <svelte:body on:keyup={onModalKeyPress} />
-<main>
+<main class:nofrog={!$settings.frogMode}>
     <div class="col-span-2 h-fit">
         <Titlebar songName={$song?.title} />
     </div>
@@ -121,6 +127,7 @@ function onModalKeyPress(e) {
     </section>
     <section
         class="flex flex-col h-full w-full pb-3 py-3 px-3 items-center justify-between"
+        class:concertmode={$concertMode}
     >
         <div class="flex gap-x-2 justify-end w-full items-center">
             <ObsSettings
@@ -153,8 +160,13 @@ function onModalKeyPress(e) {
 @layer base {
     :root {
         --primary: 22 29 19;
+
+        --frog-concert: url(concert.png);
         /* ... */
     }
+}
+.nofrog {
+    --frog-concert: rgba(0, 0, 0, 0);
 }
 body {
     @apply h-full bg-primary text-stone-100;
@@ -165,5 +177,14 @@ html {
 main {
     @apply grid h-full w-full grid-cols-2 gap-x-2;
     grid-template-rows: auto 1fr;
+}
+.concertmode {
+    background-size: 60%;
+    background-image: linear-gradient(
+            to bottom,
+            rgba(22, 29, 19, 0.8),
+            rgba(22, 29, 19, 0.8)
+        ),
+        var(--frog-concert);
 }
 </style>

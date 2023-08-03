@@ -62,7 +62,7 @@ function changeSong(number) {
 
 eAPI.onPlaylistChanged(async (_, data) => {
     if (data.type !== type) return;
-    if (data.loading) {
+    if (!data.loading) {
         //song.set(playlist[0]);
         console.log('playlist finish load ', type);
     }
