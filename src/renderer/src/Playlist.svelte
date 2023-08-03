@@ -26,12 +26,10 @@ export function onPlaylistAdd(type, playlist, data) {
 </script>
 
 <script lang="ts">
-import Fa from 'svelte-fa';
-import { faFrog } from '@fortawesome/free-solid-svg-icons';
 import { handleConfirm } from './components/ModalConcert.svelte';
 import FileLoadButton from './components/FileLoadButton.svelte';
 import type { ClientSong } from './Player.svelte';
-import { activePlaylist, song, settings } from './store';
+import { activePlaylist, song, settings, isPlaying } from './store';
 export let playlist: ClientSong[];
 export let title = 'Track List';
 export let path = '';
@@ -74,7 +72,7 @@ eAPI.onPlaylistChanged(async (_, data) => {
         <div>
             <h1 class="font-bold text-xl flex gap-x-2 items-center">
                 {#if $settings.frogMode}
-                    <Fa icon={faFrog} />
+                    {$settings.frogMode ? '🐸' : '🤮'}
                 {/if}
                 {title}
                 <span
@@ -107,13 +105,19 @@ eAPI.onPlaylistChanged(async (_, data) => {
             {#each list as track (track?.index)}
                 <!-- svelte-ignore a11y-invalid-attribute -->
                 <button
-                    class="w-full cursor-pointer flex gap-x-2 items-center py-3 px-3 text-start hover:bg-amber-900/10 truncate"
+                    class="w-full relative cursor-pointer flex gap-x-2 items-center py-3 px-3 text-start hover:bg-amber-900/10 truncate"
                     on:click={() => changeSong(track?.index)}
                 >
                     {#if $song && $song?.filePath === track?.filePath}
-                        <div class="w-[25px]">
-                            {$settings.frogMode ? '🐸' : '🤮'}
-                        </div>
+                        {#if $settings.frogMode}
+                            <img src="frog.gif" alt="keropi" width="50px" />
+                            <img
+                                src="frogdivw.gif"
+                                class="-scale-x-100 absolute bottom-0 right-0"
+                                alt="frog hopping"
+                                class:invisible={!$isPlaying}
+                            />
+                        {/if}
                     {:else}
                         <div class="w-[25px]" />
                     {/if}
