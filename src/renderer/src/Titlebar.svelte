@@ -86,7 +86,7 @@ onMount(() => {
         </button>
         <button
             type="button"
-            class="hover:bg-gray-700"
+            class="hover:bg-red-700"
             on:click={() => window.api.winClose()}
         >
             <Fa icon={faClose} />
@@ -99,7 +99,7 @@ onMount(() => {
 <style lang="postcss">
 header {
     -webkit-app-region: drag;
-    @apply flex w-full items-center justify-between px-1 py-0.5;
+    @apply flex w-full items-center justify-between px-2 py-0.5;
     @apply h-10;
 }
 button {

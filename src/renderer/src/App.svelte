@@ -50,8 +50,6 @@ function startServerConnection() {
 }
 
 onMount(() => {
-    startServerConnection();
-
     async function checkSettings() {
         const getpath = await eAPI.dataGet(type);
 
@@ -62,9 +60,13 @@ onMount(() => {
         }
         const getSettings = await eAPI.dataGet('settings');
         if (!!getSettings && getSettings.type === 'ok') {
-            if ('autoplay' in getSettings.data) settings.set(getSettings.data);
+            if ('frogMode' in getSettings.data) settings.set(getSettings.data);
+            if ('frogMode' in getSettings.data) console.log('got settings');
         }
     }
+
+    startServerConnection();
+
     checkSettings();
 });
 

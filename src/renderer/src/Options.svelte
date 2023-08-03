@@ -30,16 +30,10 @@ onMount(() => {
     checkSettings();
 });
 onDestroy(() => {
-    eAPI.dataSet({
-        key: 'options',
-        value: { mute: mute, volume: slider }
-    });
+    setSettings();
 });
 eAPI.handleSaveSetting((_) => {
-    eAPI.dataSet({
-        key: 'options',
-        value: { mute: mute, volume: slider }
-    });
+    setSettings();
     eAPI.handleClosed();
 });
 function togglemute() {
@@ -50,6 +44,9 @@ function togglemute() {
         mute = true;
         Howler.volume(0);
     }
+    setSettings();
+}
+function setSettings() {
     eAPI.dataSet({ key: 'options', value: { mute: mute, volume: slider } });
 }
 $: {
@@ -79,6 +76,7 @@ $: {
             max="100"
             class="slider"
             bind:value={slider}
+            on:change={setSettings}
             id="myRange"
         />
     </div>
