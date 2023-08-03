@@ -54,10 +54,15 @@ onMount(() => {
 
     async function checkSettings() {
         const getpath = await eAPI.dataGet(type);
+
         if (!!getpath && getpath.type === 'ok') {
             if (!getpath.data) return;
             eAPI.handleScanDir(type, getpath.data);
             path = getpath.data;
+        }
+        const getSettings = await eAPI.dataGet('settings');
+        if (!!getSettings && getSettings.type === 'ok') {
+            if ('autoplay' in getSettings.data) settings.set(getSettings.data);
         }
     }
     checkSettings();

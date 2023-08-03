@@ -6,6 +6,14 @@ import { settings } from '../store';
 import Switch from './Switch.svelte';
 import { faWarning } from '@fortawesome/free-solid-svg-icons';
 import Fa from 'svelte-fa';
+import { onDestroy } from 'svelte';
+
+onDestroy(() => {
+    window.api.dataSet({
+        key: 'settings',
+        value: $settings
+    });
+});
 </script>
 
 <Dialog bind:isOpen title="options">

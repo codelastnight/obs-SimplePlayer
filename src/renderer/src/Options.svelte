@@ -19,7 +19,7 @@ $: concertMode.set(concert);
 
 onMount(() => {
     async function checkSettings() {
-        const settings = await eAPI.dataGet('settings');
+        const settings = await eAPI.dataGet('options');
 
         if (!!settings && settings.type === 'ok') {
             if (!!settings.data.volume) slider = settings.data.volume;
@@ -31,13 +31,13 @@ onMount(() => {
 });
 onDestroy(() => {
     eAPI.dataSet({
-        key: 'settings',
+        key: 'options',
         value: { mute: mute, volume: slider }
     });
 });
 eAPI.handleSaveSetting((_) => {
     eAPI.dataSet({
-        key: 'settings',
+        key: 'options',
         value: { mute: mute, volume: slider }
     });
     eAPI.handleClosed();
@@ -50,8 +50,7 @@ function togglemute() {
         mute = true;
         Howler.volume(0);
     }
-    eAPI.dataSet({ key: 'settings', value: { mute: mute, volume: slider } });
-    eAPI.dataGet('settings').then((a) => console.log(a));
+    eAPI.dataSet({ key: 'options', value: { mute: mute, volume: slider } });
 }
 $: {
     Howler.volume(slider / 100);

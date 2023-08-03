@@ -1,14 +1,17 @@
 <script>
+export let disabled = false;
+
 import { createEventDispatcher } from 'svelte';
 import { handleConfirm } from './ModalConcert.svelte';
-import { isPlaying } from './../store';
+import { isPlaying, settings } from './../store';
 import Fa from 'svelte-fa';
 import {
     faStepBackward,
-    faStepForward
+    faStepForward,
+    faPlay,
+    faPause
 } from '@fortawesome/free-solid-svg-icons';
 
-export let disabled = false;
 const dispatch = createEventDispatcher();
 
 function prevSong() {
@@ -52,10 +55,14 @@ function playPause() {
         on:focus={(e) => e.target.blur()}
         on:click={playPause}
     >
-        {#if !$isPlaying}
-            <img src="play.png" alt="play song" class="w-[8rem]" />
+        {#if $settings.frogMode}
+            <img
+                src={!$isPlaying ? 'play.png' : 'pause.png'}
+                alt={!$isPlaying ? 'play song' : 'pause song'}
+                class="w-[8rem]"
+            />
         {:else}
-            <img src="pause.png" alt="pause song" class="w-[8rem]" />
+            <Fa size="3x" icon={!$isPlaying ? faPlay : faPause} />
         {/if}
     </button>
 

@@ -31,7 +31,7 @@ import { faFrog } from '@fortawesome/free-solid-svg-icons';
 import { handleConfirm } from './components/ModalConcert.svelte';
 import FileLoadButton from './components/FileLoadButton.svelte';
 import type { ClientSong } from './Player.svelte';
-import { activePlaylist, song } from './store';
+import { activePlaylist, song, settings } from './store';
 export let playlist: ClientSong[];
 export let title = 'Track List';
 export let path = '';
@@ -73,7 +73,9 @@ eAPI.onPlaylistChanged(async (_, data) => {
     <div class="flex justify-between items-center px-3 py-3">
         <div>
             <h1 class="font-bold text-xl flex gap-x-2 items-center">
-                <Fa icon={faFrog} />
+                {#if $settings.frogMode}
+                    <Fa icon={faFrog} />
+                {/if}
                 {title}
                 <span
                     class="text-sm font-normal px-3 py-0.5 bg-gray-600/25 rounded-full"
@@ -91,7 +93,10 @@ eAPI.onPlaylistChanged(async (_, data) => {
     {#if list.length === 0}
         <div class="grid place-items-center w-full h-1/2">
             <div class="flex flex-col items-center gap-2">
-                <p>click "open folder" 2 get started 🐸</p>
+                <p>
+                    click "open folder" 2 get started
+                    {$settings.frogMode ? '🐸' : '🤮'}
+                </p>
                 <FileLoadButton {path} {type} />
             </div>
         </div>
@@ -106,7 +111,9 @@ eAPI.onPlaylistChanged(async (_, data) => {
                     on:click={() => changeSong(track?.index)}
                 >
                     {#if $song && $song?.filePath === track?.filePath}
-                        <div class="w-[25px]">🐸</div>
+                        <div class="w-[25px]">
+                            {$settings.frogMode ? '🐸' : '🤮'}
+                        </div>
                     {:else}
                         <div class="w-[25px]" />
                     {/if}

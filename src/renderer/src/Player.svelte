@@ -21,13 +21,15 @@ $: fadeDuration = $settings.fade ? $settings.fadeValue : 1;
 $: console.log(fadeDuration);
 let playlist: ClientSong[] = [];
 
-activePlaylist.subscribe((data) => {
+$: onActivePlaylistSet($activePlaylist);
+function onActivePlaylistSet(data) {
     console.log(data.type, 'playlist set in player');
     playlist = data?.playlist;
     if (data.type in $settings) {
         autoplay = $settings[data.type].autoplay;
     }
-});
+}
+
 interface howlListProps {
     [key: string]: Howl;
 }
@@ -223,7 +225,7 @@ onDestroy(() => {
     {#if $isPlaying && $settings.frogMode}
         <div
             class="flex pointer-events-none absolute z-400"
-            transition:fade={{ duration: 1000 }}
+            transition:fade={{ duration: fadeDuration }}
         >
             <img src="Froge.gif" class=" left-1/3" alt="frog dance" />
             <img src="frogmusicnotes.gif" alt="frog dance 2" />

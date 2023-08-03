@@ -24,15 +24,17 @@ export function handleConfirm(action = 'confirm', onConfirm: () => void) {
 </script>
 
 <script>
-import Fa from 'svelte-fa';
-import { faWarning } from '@fortawesome/free-solid-svg-icons';
-import { fly } from 'svelte/transition';
 // provided by <Modals />
 export let isOpen;
 
 export let message;
 export let onConfirm;
 export let label = { confirm: message };
+
+import Fa from 'svelte-fa';
+import { faWarning } from '@fortawesome/free-solid-svg-icons';
+import { fly } from 'svelte/transition';
+import { settings } from '../store';
 </script>
 
 {#if isOpen}
@@ -43,14 +45,22 @@ export let label = { confirm: message };
         on:introstart
         on:outroend
     >
-        <div class="contents text-center">
+        <div class="contents flex flex-col items-center text-center">
+            {#if $settings.frogMode}
+                <img
+                    src="concert.png"
+                    class="mt-6"
+                    alt="frog attending concert"
+                    width="175px"
+                />
+            {/if}
             <h2 class="text-2xl max-w-xs mt-3 mb-3 mx-12">
                 Are you sure you
                 <br />
                 want to press {message}?
             </h2>
 
-            <div class="flex justify-between gap-3 mb-3 mt-1 px-3">
+            <div class="flex justify-between gap-3 mb-3 mt-1 px-3 w-full">
                 <button class=" px-4 py-1 hover:underline" on:click={closeModal}
                     >cancel</button
                 >
@@ -59,7 +69,7 @@ export let label = { confirm: message };
                     on:click={onConfirm}>{label.confirm}</button
                 >
             </div>
-            <div class="tip">
+            <div class="tip w-full">
                 <Fa class="mt-0.5" icon={faWarning} />
                 <div class="text-left">
                     <p>Concert Mode: All actions will take an extra click</p>
