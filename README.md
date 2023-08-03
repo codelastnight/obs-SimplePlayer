@@ -1,3 +1,4 @@
+currently in ALPHA testing funniness status
 ![image](https://github.com/studioartsandcrafts/frogPlayer/assets/9895341/9441adc8-6705-4f79-ab64-a62950e62676)
 
  local music player with obs integration. Exposes a localhost webpage for OBS browser to load.
