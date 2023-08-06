@@ -19,7 +19,6 @@ currently in ALPHA testing funniness status
 
 <br>
 
-Originally Based on of Aveek Saha's [Dusk Player](https://github.com/Aveek-Saha/MusicPlayer/releases)
+## Originally Based on of Aveek Saha's [Dusk Player](https://github.com/Aveek-Saha/MusicPlayer/releases)
 
-Toolkit updated to electron-vite, electron code updated to modern standards
 
