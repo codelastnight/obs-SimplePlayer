@@ -21,10 +21,10 @@ interface stateData {
 }
 </script>
 
-<img class="lily" src={states[state].src} alt="magical froggie lily chibi" />
+<img class="froggie" src={states[state].src} alt="magical froggie lily chibi" />
 
 <style>
-.lily {
-    width: 10rem;
+.froggie {
+    width: 6rem;
 }
 </style>

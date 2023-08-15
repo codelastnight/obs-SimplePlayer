@@ -9,7 +9,7 @@ let obsVisible = false;
 
 const dispatch = createEventDispatcher();
 
-let obsTitle = 'Currently playing DJ(s): ';
+let obsTitle = 'DJ:';
 let doanimate = true;
 let doAnimRand = true;
 let showtrackartist = false;

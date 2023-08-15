@@ -12,7 +12,7 @@ const states: { [key: string]: stateData } = {
     },
     talk: {
         src: images[1],
-        class: ''
+        class: 'talk'
     },
     listen: {
         src: images[0],
@@ -20,7 +20,7 @@ const states: { [key: string]: stateData } = {
     }
 };
 type State = keyof typeof states;
-export let state: State = 'idle';
+export let state: State = 'talk';
 </script>
 
 <img
@@ -34,7 +34,9 @@ export let state: State = 'idle';
     width: 10rem;
     animation-iteration-count: infinite;
 }
-
+.talk {
+    transform: scaleX(-1);
+}
 .listen {
     animation-name: listen;
     animation-duration: 2s;

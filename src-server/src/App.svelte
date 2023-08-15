@@ -1,6 +1,8 @@
 <script lang="ts">
+import Froggie from './lib/Froggie.svelte';
 import Lily from './lib/Lily.svelte';
 import { io } from 'socket.io-client';
+import Textbox from './lib/Textbox.svelte';
 
 const socket = io();
 const delay = 2000; //120000
@@ -43,17 +45,42 @@ socket.on('disconnect', function () {
 </script>
 
 <main>
+    <div class="flex">
+        <Lily state="listen" />
+        <Textbox classes="lilybox">
+            <p>{title}</p>
+            <p>{tracklisting}</p>
+        </Textbox>
+    </div>
     <div>
-        <Lily />
-        <p>{title}</p>
-        <p>{tracklisting}</p>
+        <Textbox position="bottom">
+            <p>yumsicle</p>
+        </Textbox>
+        <Froggie />
     </div>
 </main>
 
 <style>
+p {
+    all: unset;
+    display: block;
+    font-style: italic;
+}
 main {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
     display: flex;
-    justify-items: flex-end;
-    flex-direction: column;
+    justify-content: space-between;
+    flex-direction: row;
+    align-items: flex-end;
+    padding-right: 3rem;
+}
+.flex {
+    display: flex;
+}
+:global(.lilybox) {
+    margin-top: 3rem;
+    min-width: 15rem;
 }
 </style>
