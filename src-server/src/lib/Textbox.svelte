@@ -17,11 +17,11 @@ h1 {
     font: bold;
 }
 div {
-    background: #ff9ae685;
+    --textboxcolor: rgb(255, 211, 244);
+    background: var(--textboxcolor);
     padding: 0.25rem 1rem;
     height: fit-content;
     position: relative;
-    --textboxcolor: #ff9ae685;
 }
 .left::before {
     content: '';
