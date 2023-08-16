@@ -116,13 +116,13 @@ function loadAudio(filePath) {
         }
     });
     howl.on('end', () => {
-        console.log('song ended');
+        console.log('song ended: ', filePath);
         skipNext();
         isPlaying.set(autoplay);
     });
     howl.on('fade', () => {
         console.log('song finished fading');
-        if (!$isPlaying) {
+        if (!$isPlaying && howl.playing()) {
             howl.pause();
         }
     });
@@ -226,6 +226,7 @@ function unloadUnusedAudio(ondestroy = false) {
 onDestroy(() => {
     clearInterval(playInterval);
     unloadUnusedAudio(true);
+    console.log('----------COMPONENT RELOADED-------------');
 });
 </script>
 
@@ -243,7 +244,7 @@ onDestroy(() => {
     </div>
     {#if $isPlaying && $settings.frogMode}
         <div
-            class="flex pointer-events-none absolute z-400"
+            class="flex pointer-events-none absolute z-400 top-[50%]"
             transition:fade={{ duration: fadeDuration }}
         >
             <img src="Froge.gif" class=" left-1/3" alt="frog dance" />
@@ -277,7 +278,7 @@ onDestroy(() => {
 
 <style lang="postcss">
 .player {
-    @apply mt-8 grid h-full w-full w-full gap-6;
+    @apply mt-8 grid h-full w-full gap-6;
     grid-template-rows: 1fr auto auto auto;
 }
 .progress .progress-bar {
