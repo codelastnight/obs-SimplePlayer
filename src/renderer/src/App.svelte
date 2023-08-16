@@ -103,13 +103,10 @@ eAPI.onPlaylistChanged(async (_, data) => {
     if (data.type !== type) return;
 
     //if ($isPlaying) isPlaying.set(false);
-
+    path = data.dir;
     if (data.loading) {
         playlist = [];
         console.log('playlist load');
-        const getpath = await eAPI.dataGet(type);
-        if (!getpath?.data) return;
-        path = getpath.data;
     } else {
         activePlaylist.set({ type, playlist });
     }

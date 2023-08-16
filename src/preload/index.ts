@@ -26,6 +26,9 @@ const api = {
         ipcRenderer.send('dir:scan', type, path),
     cancelScanDir: (type: listType) =>
         ipcRenderer.send('dir:scan:cancel', type),
+    getTrackList: (filePath) => ipcRenderer.send('dir:getTrackList', filePath),
+    onTrackListGet: (callback: (e, data: any) => void) =>
+        ipcRenderer.on('dir:getTrackList', callback),
     openDir: (type: listType) => ipcRenderer.send('dir:open', type),
     logging: (callback) => ipcRenderer.on('logging', callback),
     winClose: () => ipcRenderer.send('win:invoke', 'close'),

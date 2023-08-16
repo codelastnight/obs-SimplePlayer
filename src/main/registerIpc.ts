@@ -1,6 +1,6 @@
 import { BrowserWindow, app, ipcMain, dialog } from 'electron';
-import { readdir, stat } from 'fs/promises';
-
+import { readdir, stat, readFile } from 'fs/promises';
+import { dirname, parse } from 'path';
 import type { Song } from './parseMetadata';
 import Store from 'electron-store';
 import { parseMetadata } from './parseMetadata';
@@ -22,6 +22,29 @@ let scan: scanobj = {
 export function getStatus() {
     return status;
 }
+async function startScanDir(win, type, filePath) {
+    win.webContents.send('files:selected', {
+        type,
+        dir: filePath,
+        loading: true
+    });
+
+    // attempt to prevent race conditions lol
+    setTimeout(async function () {
+        store.set(type, filePath);
+        scan[type] = scanDir(win, type);
+        await scan[type].start(filePath);
+        win?.webContents.send('files:selected', {
+            type,
+            dir: filePath,
+            loading: false
+        });
+        console.log('scan directory completed:', type);
+
+        //watchDir(filePath);
+    }, 250);
+}
+
 export function registerIpc() {
     // data store ipc
 
@@ -57,29 +80,52 @@ export function registerIpc() {
 
         if (!win) return;
         if (scan[type]) scan[type].cancel();
-        win.webContents.send('files:selected', {
-            type,
-            dir: filePath,
-            loading: true
-        });
-
-        // attempt to prevent race conditions lol
-        setTimeout(async function () {
-            store.set(type, filePath);
-            scan[type] = scanDir(win, type);
-            await scan[type].start(filePath);
-            win?.webContents.send('files:selected', {
-                type,
-                dir: filePath,
-                loading: false
-            });
-            console.log('scan directory completed:', type);
-
-            //watchDir(filePath);
-        }, 50);
+        startScanDir(win, type, filePath);
     });
     ipcMain.on('dir:scan:cancel', async (_, type: listType) => {
         scan[type]?.cancel();
+    });
+    ipcMain.on('dir:getTrackList', async (event, filePath) => {
+        const win = BrowserWindow.fromWebContents(event.sender);
+
+        const dir = dirname(filePath);
+        const fileName = parse(filePath).name;
+
+        const list = await readdir(dir);
+        for (const [index, file] of list.entries()) {
+            if (index > 200) return;
+            if (!file) continue;
+            if (!file.endsWith('.txt')) continue;
+            const path = resolve(dir, fileName + '.txt');
+            console.log('looking for tracklist:', path);
+            if (file === fileName + '.txt') {
+                const data = await readFile(path, 'utf-8');
+                const arr = data.split(/\r?\n/);
+
+                let parsedLines = {};
+                for (const line of arr) {
+                    const split = line.split('//');
+
+                    // get time in seconds
+                    const timeParse = split[0].trim().split(':');
+                    const seconds =
+                        parseInt(timeParse[0]) * 60 + parseInt(timeParse[1]);
+                    parsedLines = {
+                        ...parsedLines,
+                        [seconds]: split[1].trim()
+                    };
+                }
+                console.log('got tracklist!');
+                win?.webContents.send('dir:getTrackList', {
+                    type: 'ok',
+                    data: parsedLines
+                });
+                return;
+            }
+        }
+        console.log('no tracklist!');
+
+        win?.webContents.send('dir:getTrackList', { type: 'error' });
     });
 
     ipcMain.on('data:checkUpdate', () => {
@@ -127,31 +173,15 @@ async function openFolderDialog(win: BrowserWindow | null, type: listType) {
     if (result.canceled) return;
     const filePath = result.filePaths[0];
     if (!filePath || filePath[0] === 'undefined') return;
-    win.webContents.send('files:selected', {
-        type,
-        dir: filePath,
-        done: false
-    });
-    // attempt to prevent race conditions lol
-    setTimeout(async function () {
-        store.set(type, filePath);
-        if (scan[type]) scan[type]?.cancel(); // stop existing search
-        scan[type] = scanDir(win, type);
-        await scan[type]?.start(filePath);
-        win?.webContents.send('files:selected', {
-            type,
-            filePath,
-            done: true
-        });
-
-        //watchDir(filePath);
-    }, 500);
+    startScanDir(win, type, filePath);
 }
 function scanDir(win: BrowserWindow | null, type: listType) {
     let isCancelled = false;
-
+    let directory = '';
     async function walk(dir: string) {
+        directory = dir;
         if (isCancelled) return;
+
         console.log('scan directory started:', type);
 
         try {
@@ -181,7 +211,7 @@ function scanDir(win: BrowserWindow | null, type: listType) {
             isCancelled = true;
             win?.webContents.send('files:selected', {
                 type,
-                dir: '',
+                dir: directory,
                 done: true
             });
             return;
@@ -193,7 +223,7 @@ function scanDir(win: BrowserWindow | null, type: listType) {
         console.log('scan directory cancelled:', type);
         win?.webContents.send('files:selected', {
             type,
-            dir: '',
+            dir: directory,
             done: true
         });
     }

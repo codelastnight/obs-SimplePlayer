@@ -1,5 +1,3 @@
-
-
 export function sortByTitle(arr, des = false) {
     arr.sort((a, b) => {
         let fa, fb;
@@ -49,8 +47,6 @@ export function sortDefault(arr, des = false) {
     return arr;
 }
 
-
-
 export function randomize(array) {
     for (let i = array.length - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1));
@@ -58,4 +54,11 @@ export function randomize(array) {
         [array[i], array[j]] = [array[j], array[i]];
     }
     return array;
+}
+export function formatTime(secs: number) {
+    const rounded = Math.round(secs);
+    const minutes = Math.floor(rounded / 60) || 0;
+    const seconds = rounded - minutes * 60 || 0;
+
+    return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
 }

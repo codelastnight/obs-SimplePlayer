@@ -15,13 +15,14 @@ import PlaybackControls from './components/PlaybackControls.svelte';
 import { onDestroy } from 'svelte';
 import { handleConfirm } from './components/ModalConcert.svelte';
 import { song, isPlaying, activePlaylist, settings } from './store';
+import { formatTime } from './helpers';
 //export let playlist: ClientSong[];
 let autoplay = true;
 $: fadeDuration = $settings.fade ? $settings.fadeValue : 1;
 $: console.log(fadeDuration);
 let playlist: ClientSong[] = [];
 $: type = $activePlaylist.type;
-$: autoplay = $settings[type].autoplay;
+$: autoplay = $settings[type] ? $settings[type].autoplay : true;
 $: console.log('autoplay?', autoplay);
 $: onActivePlaylistSet($activePlaylist);
 function onActivePlaylistSet(data) {
@@ -59,6 +60,7 @@ function onSongChange(newSongData: ClientSong) {
 
     unloadUnusedAudio();
     const path = newSongData.filePath;
+
     if (!prevSoundPath) {
         prevSoundPath = path;
     } else if (prevSoundPath !== path) {
@@ -79,19 +81,25 @@ function onSongChange(newSongData: ClientSong) {
         prevSoundPath = path;
     }
 
+    if (type === 'track') window.api.getTrackList(path);
+
     const sound = loadAudio(path);
     sound.seek(0);
     timer = 0;
 }
 
-let playInterval;
+let playInterval: NodeJS.Timeout;
 
 function setPlayAnimation() {
-    playInterval = setInterval(() => {
+    clearTimeout(playInterval);
+
+    playInterval = setTimeout(function tick() {
         if (!$song) return;
         const sound =
             $song.filePath in howlList ? howlList[$song.filePath] : undefined;
         timer = sound?.seek() || 0;
+        setCurrentTracks(timer);
+        setTimeout(tick, 200);
     }, 200);
 }
 
@@ -110,7 +118,7 @@ function loadAudio(filePath) {
     howl.on('play', () => {
         console.log('song started playing', filePath);
         duration = howl.duration();
-        setPlayAnimation();
+
         if ($isPlaying) {
             howl.fade(0, 1, fadeDuration);
         }
@@ -146,6 +154,7 @@ function play(sound: Howl) {
     console.log('start play:', path);
 
     if (!sound.playing()) sound.play();
+
     setPlayAnimation();
 }
 function pause() {
@@ -154,7 +163,7 @@ function pause() {
         $song.filePath in howlList ? howlList[prevSoundPath] : undefined;
     if (!sound) return;
 
-    clearInterval(playInterval);
+    clearTimeout(playInterval);
     sound.fade(1, 0, fadeDuration);
     unloadUnusedAudio();
 }
@@ -203,13 +212,7 @@ function seek(time) {
 function seekToTime(event) {
     seek(event.offsetX / offsetWidth);
 }
-function formatTime(secs: number) {
-    const rounded = Math.round(secs);
-    const minutes = Math.floor(rounded / 60) || 0;
-    const seconds = rounded - minutes * 60 || 0;
 
-    return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-}
 function unloadUnusedAudio(ondestroy = false) {
     for (const [path, sound] of Object.entries(howlList)) {
         if (ondestroy) {
@@ -223,6 +226,49 @@ function unloadUnusedAudio(ondestroy = false) {
         }
     }
 }
+let trackListData = {};
+let tracklistArray = [];
+let currentTracks = [];
+window.api.onTrackListGet((_, data) => {
+    if (data.type !== 'ok') {
+        trackListData = {};
+        tracklistArray = [];
+        return;
+    }
+    trackListData = data.data;
+    tracklistArray = Object.keys(data.data).map((key) => parseInt(key));
+});
+function sortedIndex(array, value) {
+    var low = 0,
+        high = array.length;
+
+    while (low < high) {
+        var mid = (low + high) >>> 1;
+        if (array[mid] < value) low = mid + 1;
+        else high = mid;
+    }
+    return low;
+}
+function setCurrentTracks(currentTime: number) {
+    if (!trackListData || tracklistArray.length === 0) return;
+    const index = sortedIndex(tracklistArray, currentTime) - 1;
+    if (index < 0) return;
+    const text = trackListData[`${tracklistArray[index]}`] as string;
+    if (text.trim().startsWith('+')) {
+        currentTracks = [text];
+        for (let i = 1; i < tracklistArray.length - index; i++) {
+            const prevText = trackListData[`${tracklistArray[index - i]}`];
+
+            currentTracks = [prevText, ...currentTracks];
+            if (!prevText.trim().startsWith('+')) {
+                break;
+            }
+        }
+    } else {
+        currentTracks = [text];
+    }
+    //console.log(trackListData[`${index}`]);
+}
 onDestroy(() => {
     clearInterval(playInterval);
     unloadUnusedAudio(true);
@@ -232,7 +278,11 @@ onDestroy(() => {
 
 <div class="player">
     <div class="justify-self-start w-full">
-        <TrackDetails song={$song} />
+        <TrackDetails
+            song={$song}
+            trackListRaw={trackListData}
+            {currentTracks}
+        />
     </div>
 
     <div class="px-2 w-full">
