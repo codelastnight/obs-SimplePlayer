@@ -25,7 +25,7 @@ function reload() {
 </script>
 
 <div class="text-xs p flex h-fit">
-    {#if doesTrackListExist === 'ok'}
+    {#if doesTrackListExist === 'ok' && $activePlaylist.type === 'track'}
         <p class="px-2 py-1 rounded-l-full bg-green-700">tracklist found!</p>
         <button
             class="px-1 bg-green-600 hover:bg-gray-500 rounded-r-full"
