@@ -11,10 +11,9 @@ import { faXmark, faGear } from '@fortawesome/free-solid-svg-icons';
 import Fa from 'svelte-fa';
 import { createEventDispatcher, onMount } from 'svelte';
 import { ClientSong } from '../Player.svelte';
-const testList = ['track1 yumyum', 'track2 tumtumtum'];
+import { currentTracks, activePlaylist } from '../store';
 
 export let song: ClientSong;
-export let currentTrackList = testList;
 
 let obsVisible = false;
 
@@ -25,13 +24,18 @@ let obsTitle = 'DJ:';
 $: replaceTrack = song?.title || '';
 let fontSize = 16;
 let width = 20;
-$: song, updateOBS();
+$: song, $currentTracks, updateOBS();
 
 function updateOBS() {
+    const isTrack = $activePlaylist.type === 'track';
+
     if (!song) return;
+    const combine = `${song.title} by ${song.artist || 'unkown'}`;
+    let track = isTrack ? $currentTracks : [combine];
+    let title = isTrack ? obsTitle + song.title : 'Currently Playing:';
     const data: OBSData = {
-        title: obsTitle,
-        track: testList,
+        title: title,
+        track: track,
         frogspeak: ''
     };
     dispatch('update', data);

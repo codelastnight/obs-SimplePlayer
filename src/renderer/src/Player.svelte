@@ -14,7 +14,13 @@ import TrackDetails from './components/TrackDetails.svelte';
 import PlaybackControls from './components/PlaybackControls.svelte';
 import { onDestroy } from 'svelte';
 import { handleConfirm } from './components/ModalConcert.svelte';
-import { song, isPlaying, activePlaylist, settings } from './store';
+import {
+    song,
+    isPlaying,
+    activePlaylist,
+    settings,
+    currentTracks
+} from './store';
 import { formatTime } from './helpers';
 //export let playlist: ClientSong[];
 let autoplay = true;
@@ -228,11 +234,12 @@ function unloadUnusedAudio(ondestroy = false) {
 }
 let trackListData = {};
 let tracklistArray = [];
-let currentTracks = [];
+//let currentTracks = [];
 window.api.onTrackListGet((_, data) => {
     if (data.type !== 'ok') {
         trackListData = {};
         tracklistArray = [];
+        currentTracks.set([]);
         return;
     }
     trackListData = data.data;
@@ -249,28 +256,34 @@ function sortedIndex(array, value) {
     }
     return low;
 }
+let defer = -1;
 function setCurrentTracks(currentTime: number) {
     if (!trackListData || tracklistArray.length === 0) return;
     const index = sortedIndex(tracklistArray, currentTime) - 1;
     if (index < 0) return;
+    if (index === defer) return;
+    defer = index;
+    let current = [];
     const text = trackListData[`${tracklistArray[index]}`] as string;
     if (text.trim().startsWith('+')) {
-        currentTracks = [text];
-        for (let i = 1; i < tracklistArray.length - index; i++) {
+        current = [];
+        for (let i = 0; i < index + 1; i++) {
             const prevText = trackListData[`${tracklistArray[index - i]}`];
 
-            currentTracks = [prevText, ...currentTracks];
+            current = [prevText, ...current];
             if (!prevText.trim().startsWith('+')) {
                 break;
             }
         }
     } else {
-        currentTracks = [text];
+        current = [text];
     }
     //console.log(trackListData[`${index}`]);
+    currentTracks.set(current);
 }
 onDestroy(() => {
-    clearInterval(playInterval);
+    clearTimeout(playInterval);
+    playInterval = '';
     unloadUnusedAudio(true);
     console.log('----------COMPONENT RELOADED-------------');
 });
@@ -281,7 +294,7 @@ onDestroy(() => {
         <TrackDetails
             song={$song}
             trackListRaw={trackListData}
-            {currentTracks}
+            currentTracks={$currentTracks}
         />
     </div>
 

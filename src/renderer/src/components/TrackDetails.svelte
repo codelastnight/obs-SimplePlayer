@@ -48,7 +48,7 @@ function reload() {
         <div class="flex justify-between">
             <div>
                 {#each currentTracks as text, index (index)}
-                    <p>{index === 0 ? '' : '+'} {text}</p>
+                    <p class="text-xs">{index === 0 ? '' : '+'} {text}</p>
                 {/each}
             </div>
         </div>
@@ -66,7 +66,7 @@ function reload() {
     <div class="flex flex-col h-[50vh] w-[50vw] overflow-y-auto">
         {#if !!trackListRaw}
             {#each Object.entries(trackListRaw) as [timestamp, text]}
-                <div class="listitem grid gap-x-2">
+                <div class="listitem grid gap-x-2 mb-3 text-sm">
                     <p class="text-purple-100/75 text-right">
                         {formatTime(parseInt(timestamp))}
                     </p>
