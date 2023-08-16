@@ -165,7 +165,7 @@ function onModalKeyPress(e) {
     :root {
         --primary: 22 29 19;
 
-        --frog-concert: url('concert.png');
+        --frog-concert: url('/concert.png');
         /* ... */
     }
 }

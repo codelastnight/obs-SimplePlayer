@@ -3,13 +3,15 @@ import type { ClientSong } from '../Player.svelte';
 import { formatTime } from '../helpers';
 import { activePlaylist } from '../store';
 import Dialog from './Dialog.svelte';
+import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
+import Fa from 'svelte-fa';
 
 export let song: ClientSong;
 export let currentTracks: string[] = ['testt1', 'test2'];
 export let trackListRaw;
 let isOpen = false;
 
-let doesTrackListExist = 'loading';
+let doesTrackListExist = 'none';
 window.api.onTrackListGet((_, data) => {
     if (data.type !== 'ok') {
         doesTrackListExist = 'fail';
@@ -19,7 +21,7 @@ window.api.onTrackListGet((_, data) => {
 });
 function reload() {
     const path = song.filePath;
-
+    doesTrackListExist = 'loading';
     window.api.getTrackList(path);
 }
 </script>
@@ -33,12 +35,25 @@ function reload() {
         >
             view list
         </button>
-    {:else}
+        <button
+            class="px-1 ml-1 hover:bg-gray-600 rounded-full underline"
+            on:click={reload}
+        >
+            reload
+        </button>
+    {:else if doesTrackListExist === 'fail'}
         <p class="px-2 py-1 rounded-full bg-gray-600">no tracklist found</p>
+        <button
+            class="px-1 ml-1 hover:bg-gray-600 rounded-full underline"
+            on:click={reload}
+        >
+            reload
+        </button>
+    {:else if doesTrackListExist === 'loading'}
+        <p class="px-2 py-1 rounded-full bg-gray-500">
+            <Fa icon={faCircleNotch} spin />
+        </p>
     {/if}
-    <button class="px-1 ml-1 hover:bg-gray-600 rounded-full" on:click={reload}>
-        reload
-    </button>
 </div>
 {#if $activePlaylist.type === 'track'}
     <div id="title" class="">
