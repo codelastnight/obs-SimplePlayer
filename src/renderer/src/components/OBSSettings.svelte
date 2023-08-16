@@ -1,38 +1,38 @@
+<script context="module" lang="ts">
+export interface OBSData {
+    title: string;
+    track: string[];
+    frogspeak: string;
+}
+</script>
+
 <script lang="ts">
 import { faXmark, faGear } from '@fortawesome/free-solid-svg-icons';
 import Fa from 'svelte-fa';
 import { createEventDispatcher, onMount } from 'svelte';
 import { ClientSong } from '../Player.svelte';
+const testList = ['track1 yumyum', 'track2 tumtumtum'];
+
 export let song: ClientSong;
+export let currentTrackList = testList;
 
 let obsVisible = false;
 
 const dispatch = createEventDispatcher();
 
 let obsTitle = 'DJ:';
-let doanimate = true;
-let doAnimRand = true;
-let showtrackartist = false;
-let showtrack = true;
-let replaceTrack;
+
 $: replaceTrack = song?.title || '';
 let fontSize = 16;
 let width = 20;
 $: song, updateOBS();
-function resetTrackTitle() {
-    replaceTrack = song.title;
-}
+
 function updateOBS() {
     if (!song) return;
-    const data = {
-        track: replaceTrack,
+    const data: OBSData = {
         title: obsTitle,
-        animate: doanimate,
-        showtrack: showtrack,
-        showartist: showtrackartist,
-        fontSize: fontSize,
-        width: width,
-        animRand: doAnimRand
+        track: testList,
+        frogspeak: ''
     };
     dispatch('update', data);
 }
@@ -41,12 +41,9 @@ onMount(() => {
     const data = {
         track: replaceTrack,
         title: obsTitle,
-        animate: doanimate,
-        showtrack: showtrack,
-        showartist: showtrackartist,
+
         fontSize: fontSize,
-        width: width,
-        animRand: doAnimRand
+        width: width
     };
     console.log(data);
 
@@ -63,7 +60,7 @@ function close() {
     on:click={() => (obsVisible = !obsVisible)}
     class="rounded-full gap-x-2 px-4 py-2 flex items-center hover:bg-slate-700"
 >
-    OBS Settings
+    OBS
     <Fa icon={faGear} />
 </button>
 {#if obsVisible}
@@ -92,60 +89,7 @@ function close() {
                 </div>
             </header>
             <div class="flex items-center gap-1"></div>
-            <div class="grid grid-cols-2 gap-y-4">
-                <label class="flex items-center cursor-pointer relative">
-                    <input
-                        bind:checked={doanimate}
-                        on:change={updateOBS}
-                        class="sr-only"
-                        role="switch"
-                        type="checkbox"
-                    />
-                    <div
-                        class="toggle-bg bg-slate-600 border-2 border-slate-500 h-6 w-11 rounded-full"
-                    />
-                    <span class="pl-2">float animation</span>
-                </label>
-                <label class="flex items-center cursor-pointer relative">
-                    <input
-                        bind:checked={doAnimRand}
-                        on:change={updateOBS}
-                        class="sr-only"
-                        role="switch"
-                        type="checkbox"
-                    />
-                    <div
-                        class="toggle-bg bg-slate-600 border-2 border-slate-500 h-6 w-11 rounded-full"
-                    />
-                    <span class="pl-2">random animation</span>
-                </label>
-                <label class="flex items-center cursor-pointer relative">
-                    <input
-                        bind:checked={showtrackartist}
-                        on:change={updateOBS}
-                        class="sr-only"
-                        role="switch"
-                        type="checkbox"
-                    />
-                    <div
-                        class="toggle-bg bg-slate-600 border-2 border-slate-500 h-6 w-11 rounded-full"
-                    />
-                    <span class="pl-2">show artist</span>
-                </label>
-                <label class="flex items-center cursor-pointer relative">
-                    <input
-                        bind:checked={showtrack}
-                        on:change={updateOBS}
-                        class="sr-only"
-                        role="switch"
-                        type="checkbox"
-                    />
-                    <div
-                        class="toggle-bg bg-slate-600 border-2 border-slate-500 h-6 w-11 rounded-full"
-                    />
-                    <span class="pl-2">show track</span>
-                </label>
-            </div>
+            <div class="grid grid-cols-2 gap-y-4"></div>
             <label for="titletext">obs heading:</label>
             <input
                 bind:value={obsTitle}
@@ -154,92 +98,9 @@ function close() {
                 id="titletext"
                 type="text"
             />
-            <label>change track text (resets automatically):</label>
-            <div class="flex gap-x-2">
-                <input
-                    bind:value={replaceTrack}
-                    on:input={updateOBS}
-                    class="bg-slate-600 px-4 py-1 w-full rounded-lg"
-                    id="titletext"
-                    type="text"
-                />
-                <button
-                    on:click={() => {
-                        resetTrackTitle();
-                        updateOBS();
-                    }}
-                    class="py-1 px-4 bg-slate-800 hover:bg-slate-600 rounded-full"
-                    >reset</button
-                >
-            </div>
-
-            <label class="flex justify-end gap-x-2">
-                fontsize
-                <input
-                    class="bg-slate-600 px-2 py-1 rounded-lg"
-                    type="number"
-                    on:change={updateOBS}
-                    bind:value={fontSize}
-                    min="6"
-                    max="50"
-                />
-                <input
-                    type="range"
-                    bind:value={fontSize}
-                    on:input={updateOBS}
-                    min="6"
-                    max="50"
-                />
-                <button
-                    on:click={() => {
-                        fontSize = 16;
-                        updateOBS();
-                    }}
-                    class="py-1 px-4 bg-slate-800 hover:bg-slate-600 rounded-full"
-                >
-                    reset
-                </button>
-            </label>
-            <label class="flex justify-end gap-x-2">
-                box width
-                <input
-                    class="bg-slate-600 px-2 py-1 rounded-lg"
-                    type="number"
-                    on:change={updateOBS}
-                    bind:value={width}
-                    min="6"
-                    max="80"
-                />
-                <input
-                    type="range"
-                    bind:value={width}
-                    on:input={updateOBS}
-                    min="6"
-                    max="80"
-                />
-                <button
-                    on:click={() => {
-                        width = 20;
-                        updateOBS();
-                    }}
-                    class="py-1 px-4 bg-slate-800 hover:bg-slate-600 rounded-full"
-                    >reset</button
-                >
-            </label>
         </div>
     </section>
 {/if}
 
 <style lang="postcss">
-input:checked + .toggle-bg:after {
-    transform: translateX(100%);
-    @apply border-slate-500;
-}
-input:checked + .toggle-bg {
-    @apply border-emerald-400 bg-emerald-400;
-}
-.toggle-bg:after {
-    content: '';
-    @apply absolute left-0.5 top-0.5 h-5 w-5 rounded-full border border-slate-300 bg-slate-400 shadow-sm transition;
-}
 </style>

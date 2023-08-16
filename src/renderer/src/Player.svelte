@@ -20,14 +20,16 @@ let autoplay = true;
 $: fadeDuration = $settings.fade ? $settings.fadeValue : 1;
 $: console.log(fadeDuration);
 let playlist: ClientSong[] = [];
-
+$: type = $activePlaylist.type;
+$: autoplay = $settings[type].autoplay;
+$: console.log('autoplay?', autoplay);
 $: onActivePlaylistSet($activePlaylist);
 function onActivePlaylistSet(data) {
-    console.log(data.type, 'playlist set in player');
     playlist = data?.playlist;
-    if (data.type in $settings) {
-        autoplay = $settings[data.type].autoplay;
-    }
+    // if (data.type in $settings) {
+    //     autoplay = $settings[data.type].autoplay;
+    // }
+    console.log(data.type, ': playlist set as active : ');
 }
 
 interface howlListProps {
@@ -51,14 +53,15 @@ $: progressWidth = Math.round((timer / duration) * 100) || 0;
 //     }
 // }
 
-$: $song, onSongChange();
-function onSongChange() {
-    if (!$song) return;
-    unloadUnusedAudio();
+$: onSongChange($song);
+function onSongChange(newSongData: ClientSong) {
+    if (!newSongData) return;
 
+    unloadUnusedAudio();
+    const path = newSongData.filePath;
     if (!prevSoundPath) {
-        prevSoundPath = $song.filePath;
-    } else if (prevSoundPath !== $song.filePath) {
+        prevSoundPath = path;
+    } else if (prevSoundPath !== path) {
         const prevSound =
             prevSoundPath in howlList ? howlList[prevSoundPath] : undefined;
         if (!!prevSound) {
@@ -73,11 +76,12 @@ function onSongChange() {
             //     prevSound.unload();
             // });
         }
-        prevSoundPath = $song.filePath;
+        prevSoundPath = path;
     }
+
+    const sound = loadAudio(path);
+    sound.seek(0);
     timer = 0;
-    if (!($song.filePath in howlList)) loadAudio();
-    howlList[prevSoundPath].seek(0);
 }
 
 let playInterval;
@@ -86,22 +90,25 @@ function setPlayAnimation() {
     playInterval = setInterval(() => {
         if (!$song) return;
         const sound =
-            $song.filePath in howlList ? howlList[prevSoundPath] : undefined;
+            $song.filePath in howlList ? howlList[$song.filePath] : undefined;
         timer = sound?.seek() || 0;
     }, 200);
 }
 
-function loadAudio() {
+function loadAudio(filePath) {
+    if (filePath in howlList) return howlList[filePath];
+
     const howl = new Howl({
-        src: [$song.filePath],
+        src: [filePath],
         html5: true,
-        volume: 0
+        volume: 0,
+        autoplay: false
     });
     howl.once('load', () => {
         duration = howl.duration();
-        if ($isPlaying) howl.play();
     });
     howl.on('play', () => {
+        console.log('song started playing', filePath);
         duration = howl.duration();
         setPlayAnimation();
         if ($isPlaying) {
@@ -109,31 +116,36 @@ function loadAudio() {
         }
     });
     howl.on('end', () => {
+        console.log('song ended');
         skipNext();
         isPlaying.set(autoplay);
     });
     howl.on('fade', () => {
+        console.log('song finished fading');
         if (!$isPlaying) {
             howl.pause();
         }
     });
 
     howlList[$song.filePath] = howl;
+    return howl;
 }
 
 $: if ($isPlaying) {
-    if ($song) play();
+    if ($song) {
+        play(howlList[$song.filePath]);
+    }
 } else {
     if ($song) pause();
 }
 
-function play() {
+function play(sound: Howl) {
     if (!$isPlaying || !$song) return;
-    if (!($song.filePath in howlList)) loadAudio();
+    const path = $song.filePath;
+    // const sound = loadAudio(path);
+    console.log('start play:', path);
 
-    const sound = howlList[prevSoundPath];
-
-    sound.play();
+    if (!sound.playing()) sound.play();
     setPlayAnimation();
 }
 function pause() {
@@ -182,8 +194,9 @@ function seek(time) {
     const timestamp = formatTime(Math.round(seek));
     handleConfirm('skip to: ' + timestamp, () => {
         sound.seek(seek);
+        console.log(sound.seek());
         if (sound.playing()) setPlayAnimation();
-        else timer = seek;
+        else timer = seek || 0;
     });
 }
 
@@ -197,16 +210,22 @@ function formatTime(secs: number) {
 
     return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
 }
-function unloadUnusedAudio() {
+function unloadUnusedAudio(ondestroy = false) {
     for (const [path, sound] of Object.entries(howlList)) {
+        if (ondestroy) {
+            sound.unload();
+            continue;
+        }
         if (path === prevSoundPath || path === $song.filePath) continue;
 
-        sound.stop();
+        if (sound.playing) {
+            sound.stop();
+        }
     }
 }
 onDestroy(() => {
     clearInterval(playInterval);
-    unloadUnusedAudio();
+    unloadUnusedAudio(true);
 });
 </script>
 

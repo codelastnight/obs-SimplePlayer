@@ -52,7 +52,9 @@ function filterPlaylist(playerObj) {
 }
 function changeSong(number) {
     handleConfirm('change song', () => {
-        song.set(playlist.find((item) => item.index === number));
+        const newSong = playlist.find((item) => item.index === number);
+        if ($song.filePath === newSong.filePath) return;
+        song.set(newSong);
         if ($activePlaylist.type !== type)
             activePlaylist.set({ type, playlist });
     });

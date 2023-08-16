@@ -1,7 +1,6 @@
 <script>
 import { fade, fly } from 'svelte/transition';
 import Playlist, { onPlaylistAdd } from './Playlist.svelte';
-import { activePlaylist } from './store';
 import { onMount } from 'svelte';
 import Fa from 'svelte-fa';
 import { faChevronUp, faChevronDown } from '@fortawesome/free-solid-svg-icons';
@@ -26,15 +25,10 @@ onMount(() => {
 eAPI.onPlaylistChanged(async (_, data) => {
     if (data.type !== type) return;
     if (data.loading) {
-        //if ($isPlaying) isPlaying.set(false);
-
         playlist = [];
-        console.log('playlist load');
-        const getpath = await eAPI.dataGet(type);
-        if (!getpath?.data) return;
-        path = getpath.data;
-    } else {
-        if (isOpen) activePlaylist.set({ type, playlist });
+        console.log('waiting for playlist:', type);
+
+        path = data.dir;
     }
 });
 eAPI.onPlaylistAdd(async (_, data) => {
@@ -53,12 +47,7 @@ eAPI.onPlaylistAdd(async (_, data) => {
                 <Fa icon={faChevronDown} />
             </button>
 
-            <Playlist
-                {path}
-                bind:playlist
-                title="standby list"
-                type="standby"
-            />
+            <Playlist {path} bind:playlist title="standby list" {type} />
         </div>
 
         <div class="backdrop" transition:fade={{ duration: 300 }}></div>
@@ -81,7 +70,7 @@ eAPI.onPlaylistAdd(async (_, data) => {
     @apply flex w-full items-center justify-center gap-3 px-3 py-1;
 }
 .toggle:hover {
-    @apply bg-gray-800;
+    @apply rounded-t-xl bg-gray-800;
 }
 .wrapper {
     @apply absolute left-0 top-0  z-0 h-full w-full;

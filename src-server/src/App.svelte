@@ -3,44 +3,28 @@ import Froggie from './lib/Froggie.svelte';
 import Lily from './lib/Lily.svelte';
 import { io } from 'socket.io-client';
 import Textbox from './lib/Textbox.svelte';
-
+import type { OBSData } from '../../src/renderer/src/components/OBSSettings.svelte';
 const socket = io();
 const delay = 2000; //120000
 
-let timerId = setTimeout(animstart, delay);
-let title = 'test';
-let tracklisting = 'test2';
-function animstart() {
-    // const animate = randomize(animList)[0]
-    // main.classList.add(animate)
-    // timerId = setTimeout(() => animend(animate), 2000);
-}
+let title = 'DJ: RONSROGUE';
+let tracklisting = ['test1', 'test2'];
 
 socket.on('onload', function (msg) {
-    clearTimeout(timerId);
-    timerId = setTimeout(animstart, delay);
-
     socket.emit('whoiam', 'reciever');
 });
 socket.on('whouare', function (msg) {
     socket.emit('ask4update', 'pls');
 });
-socket.on('update', function (msg) {
+socket.on('update', function (msg: OBSData) {
     console.log(msg);
-
-    if (!msg.animRand) clearTimeout(timerId);
-    else {
-        clearTimeout(timerId);
-        timerId = setTimeout(animstart, delay);
-    }
 
     title = msg.title;
     tracklisting = msg.track;
 });
 socket.on('disconnect', function () {
     title = 'disconnected';
-    tracklisting = 'try refreshing browser source or app?';
-    clearTimeout(timerId);
+    tracklisting = ['try refreshing browser source or app?'];
 });
 </script>
 
@@ -48,8 +32,14 @@ socket.on('disconnect', function () {
     <div class="flex">
         <Lily state="listen" />
         <Textbox classes="lilybox">
-            <p>{title}</p>
-            <p>{tracklisting}</p>
+            <p><b>{title}</b></p>
+            {#each tracklisting as text, index (index)}
+                {#if index === 0}
+                    <p class="italic">{text}</p>
+                {:else}
+                    <p class="italic">+ {text}</p>
+                {/if}
+            {/each}
         </Textbox>
     </div>
     <div>
@@ -64,6 +54,8 @@ socket.on('disconnect', function () {
 p {
     all: unset;
     display: block;
+}
+.italic {
     font-style: italic;
 }
 main {
