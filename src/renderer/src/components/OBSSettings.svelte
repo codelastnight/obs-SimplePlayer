@@ -5,6 +5,7 @@ export interface OBSData {
     frogspeak: string;
     flavortext: string[];
     isPlaying: boolean;
+    announcements: string[];
 }
 </script>
 
@@ -28,7 +29,8 @@ let fontSize = 16;
 let width = 20;
 $: song, $currentTracks, $isPlaying, updateOBS();
 let flavortextinput = 'JEWELS OF THE FOREST, "MUSIC" TO MY EARS';
-
+let announcements = [];
+let showAnnouncements = false;
 $: flavortext = flavortextinput.split(',') || [];
 function updateOBS() {
     const isTrack = $activePlaylist.type === 'track';
@@ -42,7 +44,8 @@ function updateOBS() {
         track: track,
         frogspeak: '',
         flavortext: flavortext,
-        isPlaying: $isPlaying
+        isPlaying: $isPlaying,
+        announcements: showAnnouncements ? announcements : []
     };
     dispatch('update', data);
 }
