@@ -36,3 +36,4 @@ export type Settings = typeof settingsDefault;
 export const settings: Writable<Settings> = writable(settingsDefault);
 
 export const currentTracks: Writable<string[]> = writable([]);
+export const ribbitText: Writable<string[]> = writable([]);

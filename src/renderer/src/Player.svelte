@@ -25,11 +25,9 @@ import { formatTime } from './helpers';
 //export let playlist: ClientSong[];
 let autoplay = true;
 $: fadeDuration = $settings.fade ? $settings.fadeValue : 1;
-$: console.log(fadeDuration);
 let playlist: ClientSong[] = [];
 $: type = $activePlaylist.type;
 $: autoplay = $settings[type] ? $settings[type].autoplay : true;
-$: console.log('autoplay?', autoplay);
 $: onActivePlaylistSet($activePlaylist);
 function onActivePlaylistSet(data) {
     playlist = data?.playlist;
@@ -209,7 +207,6 @@ function seek(time) {
     const timestamp = formatTime(Math.round(seek));
     handleConfirm('skip to: ' + timestamp, () => {
         sound.seek(seek);
-        console.log(sound.seek());
         if (sound.playing()) setPlayAnimation();
         else timer = seek || 0;
     });

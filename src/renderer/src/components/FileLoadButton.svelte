@@ -19,6 +19,7 @@ function reloadFolder() {
     handleConfirm('reload folder', () => {
         if (!path) return;
         eAPI.handleScanDir(type, path);
+        window.api.getRibbitText(path);
     });
 }
 function openFolder() {

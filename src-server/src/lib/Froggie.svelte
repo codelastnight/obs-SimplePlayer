@@ -35,7 +35,7 @@ async function onStateChange(s) {
         if (s !== 'prespeak') return;
         state = 'spoke';
     } else if (s === 'spoke') {
-        await delay(10000);
+        await delay(15000);
         if (s !== 'spoke') return;
         state = 'idle';
     }

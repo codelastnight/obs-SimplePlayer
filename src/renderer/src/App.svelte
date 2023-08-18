@@ -7,7 +7,8 @@ import {
     song,
     activePlaylist,
     concertMode,
-    settings
+    settings,
+    ribbitText
 } from './store';
 import { Modals, closeModal } from 'svelte-modals';
 
@@ -57,6 +58,7 @@ onMount(() => {
             if (!getpath.data) return;
             eAPI.handleScanDir(type, getpath.data);
             path = getpath.data;
+            window.api.getRibbitText(path);
         }
         const getSettings = await eAPI.dataGet('settings');
         if (!!getSettings && getSettings.type === 'ok') {
@@ -68,14 +70,11 @@ onMount(() => {
     startServerConnection();
 
     checkSettings();
-    window.api.getRibbitText(path);
 });
-let ribbitTexts = [];
 window.api.onRibbitTextGet((e, data) => {
     if (data.type !== 'ok') return;
 
-    ribbitTexts = data.data;
-    console.log(ribbitTexts);
+    ribbitText.set(data.data);
 });
 
 let obsSettingData;

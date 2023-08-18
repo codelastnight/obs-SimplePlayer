@@ -14,7 +14,7 @@ import { faXmark, faGear } from '@fortawesome/free-solid-svg-icons';
 import Fa from 'svelte-fa';
 import { createEventDispatcher, onMount } from 'svelte';
 import { ClientSong } from '../Player.svelte';
-import { currentTracks, activePlaylist, isPlaying } from '../store';
+import { currentTracks, activePlaylist, isPlaying, ribbitText } from '../store';
 import Switch from './Switch.svelte';
 
 export let song: ClientSong;
@@ -26,8 +26,7 @@ const dispatch = createEventDispatcher();
 let obsTitle = 'DJ: ';
 
 $: replaceTrack = song?.title || '';
-let fontSize = 16;
-let width = 20;
+let frogspeak = '';
 $: song, $currentTracks, $isPlaying, updateOBS();
 let flavortextinput = 'JEWELS OF THE FOREST, "MUSIC" TO MY EARS';
 let flavortext = flavortextinput.split(',');
@@ -43,9 +42,9 @@ function updateOBS() {
     let track = isTrack ? $currentTracks : [combine];
     let title = isTrack ? obsTitle + song.title : 'Currently Playing:';
     const data: OBSData = {
-        title: title,
-        track: track,
-        frogspeak: '',
+        track: showText ? track : [],
+        title: showText ? title : '',
+        frogspeak: frogspeak,
         flavortext: flavortext,
         isPlaying: $isPlaying,
         announcements: showAnnouncements ? announcements : []
@@ -59,27 +58,53 @@ function setflavortext() {
 }
 function setAnnouncements() {
     announcements = announcementInput.split('\n');
-    console.log(announcements, announcementInput.split('\n'));
     updateOBS();
 }
+let showText = true;
+function hideText() {}
 let didMount = false;
+let froggietiming = 180;
 onMount(() => {
-    const data = {
-        track: replaceTrack,
-        title: obsTitle,
-
-        fontSize: fontSize,
-        width: width
+    const data: OBSData = {
+        track: showText ? [replaceTrack] : [],
+        title: showText ? obsTitle : '',
+        frogspeak: frogspeak,
+        flavortext: flavortext,
+        isPlaying: $isPlaying,
+        announcements: showAnnouncements ? announcements : []
     };
-    console.log(data);
     setAnnouncements();
     setflavortext();
     dispatch('update', data);
+    runClock();
+
+    return () => {
+        clearTimeout(clocktimeout);
+    };
 });
 
 function close() {
     obsVisible = false;
 }
+let ribbitIndex = 0;
+let clocktimeout;
+function runClock() {
+    const now = new Date();
+    const timeToNextTick =
+        (froggietiming - now.getSeconds()) * 1000 - now.getMilliseconds();
+    console.log(timeToNextTick);
+    clocktimeout = setTimeout(function () {
+        const index = (ribbitIndex + 1) % $ribbitText.length;
+        frogspeak = $ribbitText[index];
+        ribbitIndex = index;
+        updateOBS();
+        runClock();
+    }, timeToNextTick);
+}
+
+// display the initial clock
+
+// start the running clock display that will update right on the minute change
 </script>
 
 <button
@@ -115,7 +140,21 @@ function close() {
                     >
                 </div>
             </header>
-            <div class="flex items-center gap-1"></div>
+
+            <div class="flex items-center gap-1">
+                <Switch bind:checked={showText} on:change={updateOBS}>
+                    show text
+                </Switch>
+            </div>
+            <label>time between froggie fact (min 60 seconds)</label>
+            <input
+                bind:value={froggietiming}
+                on:change={updateOBS}
+                class="input"
+                id="titletext"
+                min={60}
+                type="number"
+            />
             <div class="grid grid-cols-2 gap-y-4"></div>
             <label for="titletext">obs heading:</label>
             <input

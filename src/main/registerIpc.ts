@@ -130,7 +130,7 @@ export function registerIpc() {
     ipcMain.on('dir:getRibbitText', async (event, filePath) => {
         const win = BrowserWindow.fromWebContents(event.sender);
 
-        const dir = dirname(filePath);
+        const dir = filePath;
         const fileName = 'Ribbit-Text';
 
         const list = await readdir(dir);
@@ -144,10 +144,12 @@ export function registerIpc() {
                 const data = await readFile(path, 'utf-8');
                 const arr = data.split(/\r?\n/);
 
+                const arr2 = shuffleArray(arr);
                 console.log('got ribbitlist!');
+
                 win?.webContents.send('dir:getRibbitText', {
                     type: 'ok',
-                    data: arr
+                    data: arr2
                 });
                 return;
             }
@@ -171,7 +173,13 @@ export function registerIpc() {
         }
     });
 }
-
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
 export type listType = 'standby' | 'track' | 'none';
 
 export interface fileData {
