@@ -1,11 +1,17 @@
 <script lang="ts">
 export let title = '';
 export let position: 'left' | 'bottom' = 'left';
-export let bounce = true;
+export let bounce = false;
 export let classes = '';
+export let delay = 0;
+import { fly, fade } from 'svelte/transition';
 </script>
 
-<div class:bob={bounce}>
+<div
+    class:bob={bounce}
+    in:fly={{ y: -15, delay: delay, duration: 250 }}
+    out:fade={{ duration: 0 }}
+>
     <div class="box {position} {classes}">
         {#if title}
             <h1>{title}</h1>
@@ -20,6 +26,7 @@ h1 {
     font: bold;
 }
 .box {
+    margin-top: -6px;
     --textboxcolor: linear-gradient(
             180deg,
             #ffe5e8 0%,
@@ -33,9 +40,8 @@ h1 {
     border: 2px double #f93a2b;
     border-radius: 8px;
     transform-style: preserve-3d;
-
+    width: fit-content;
     transform: skewX(-20deg) rotateY(10deg);
-    max-width: 50ch;
 }
 /* .left::before {
     content: '';
@@ -64,7 +70,7 @@ h1 {
 
 @keyframes bob {
     from {
-        transform: translateY(-6px);
+        transform: translateY(-3px);
     }
     to {
         transform: translateY(0px);
@@ -73,6 +79,7 @@ h1 {
 .bob {
     animation-name: bob;
     animation-duration: 1s;
+    animation-delay: 300ms;
     animation-direction: alternate;
     animation-timing-function: ease-in-out;
     animation-iteration-count: infinite;

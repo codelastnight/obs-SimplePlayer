@@ -46,7 +46,6 @@ async function talkAnim() {
     state = defaultState;
 }
 async function talking(s) {
-    console.log(s);
     if (s === 'talk') {
         src = images[1];
         await delay(1000);
@@ -61,7 +60,6 @@ onMount(() => {
 
         count = index;
         timeout = setTimeout(tick, 2000);
-        console.log(motionStates);
     }, 2000);
 
     return () => {
