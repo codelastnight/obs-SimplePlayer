@@ -208,5 +208,6 @@ main {
 }
 :global(.lilybox) {
     min-width: 15rem;
+    max-width: 25rem;
 }
 </style>

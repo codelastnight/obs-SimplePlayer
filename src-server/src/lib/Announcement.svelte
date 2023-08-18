@@ -7,9 +7,18 @@ export let announcements = [];
 {#if announcements.length > 0}
     <section transition:fly={{ y: -20 }}>
         <Marquee speed={15}>
-            s {#each announcements as text, index (index)}
+            {#each announcements as text, index (index)}
                 <p><b>{text}</b></p>
             {/each}
+            <p>---</p>
+            {#each announcements as text, index (index)}
+                <p><b>{text}</b></p>
+            {/each}
+            <p>---</p>
+            {#each announcements as text, index (index)}
+                <p><b>{text}</b></p>
+            {/each}
+            <p>---</p>
         </Marquee>
     </section>
 {/if}

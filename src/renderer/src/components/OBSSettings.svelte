@@ -15,6 +15,7 @@ import Fa from 'svelte-fa';
 import { createEventDispatcher, onMount } from 'svelte';
 import { ClientSong } from '../Player.svelte';
 import { currentTracks, activePlaylist, isPlaying } from '../store';
+import Switch from './Switch.svelte';
 
 export let song: ClientSong;
 
@@ -29,9 +30,11 @@ let fontSize = 16;
 let width = 20;
 $: song, $currentTracks, $isPlaying, updateOBS();
 let flavortextinput = 'JEWELS OF THE FOREST, "MUSIC" TO MY EARS';
+let flavortext = flavortextinput.split(',');
+let announcementInput =
+    'ATTENTION FROGGERS:\n IMPORTANT ANNOUNCEMENT \n have a nice day :)';
 let announcements = [];
 let showAnnouncements = false;
-$: flavortext = flavortextinput.split(',') || [];
 function updateOBS() {
     const isTrack = $activePlaylist.type === 'track';
 
@@ -49,6 +52,18 @@ function updateOBS() {
     };
     dispatch('update', data);
 }
+
+$: unsavedAnnouncment = announcements !== announcementInput.split('\n');
+
+function setflavortext() {
+    flavortext = flavortextinput.split(',') || [];
+    updateOBS();
+}
+function setAnnouncements() {
+    announcements = announcementInput.split('\n');
+    console.log(announcements, announcementInput.split('\n'));
+    updateOBS();
+}
 let didMount = false;
 onMount(() => {
     const data = {
@@ -59,7 +74,8 @@ onMount(() => {
         width: width
     };
     console.log(data);
-
+    setAnnouncements();
+    setflavortext();
     dispatch('update', data);
 });
 
@@ -79,7 +95,7 @@ function close() {
 {#if obsVisible}
     <section class="w-[550px] absolute p-4 top-10 right-0 z-50 drop-shadow">
         <div
-            class="bg-neutral-900 rounded-xl py-4 px-4 flex flex-col gap-y-2 border border-slate-800"
+            class="bg-neutral-900 rounded-xl py-4 px-4 flex flex-col gap-y-0.5 border border-slate-800"
         >
             <header class="flex justify-between items-center">
                 <h1 class="text-xl font-bold">OBS settings</h1>
@@ -107,23 +123,56 @@ function close() {
             <input
                 bind:value={obsTitle}
                 on:input={updateOBS}
-                class="bg-slate-600 px-4 py-1 w-full rounded-lg"
+                class="input"
                 id="titletext"
                 type="text"
             />
-            <label for="titletext"
-                >flavor text (separate by commas) (resets on app restart):</label
-            >
-            <input
-                bind:value={flavortextinput}
-                on:input={updateOBS}
-                class="bg-slate-600 px-4 py-1 w-full rounded-lg"
-                id="titletext"
-                type="text"
-            />
+            <label for="flavor">
+                flavor text (separate by commas) (resets on app restart):
+            </label>
+            <div class="flex gap-1">
+                <input
+                    bind:value={flavortextinput}
+                    on:input={updateOBS}
+                    class="input"
+                    id="flavor"
+                    type="text"
+                />
+                <button class="text-sm" on:click={setflavortext}>
+                    update text
+                </button>
+            </div>
+            <div>
+                <Switch bind:checked={showAnnouncements} on:change={updateOBS}>
+                    show annoucements (split by enter)
+                </Switch>
+            </div>
+            <textarea
+                class="input h-[4rem] text-sm"
+                bind:value={announcementInput}
+            ></textarea>
+            <button class="text-sm" on:click={setAnnouncements}>
+                {unsavedAnnouncment ? '(unsaved) ' : ''}
+                update Announcmeent text
+            </button>
         </div>
     </section>
 {/if}
 
 <style lang="postcss">
+.input {
+    @apply w-full rounded-lg bg-slate-600 px-4 py-1;
+}
+label {
+    @apply mt-2 text-sm;
+}
+button {
+    @apply flex justify-center rounded-full bg-gray-500/25 px-3 py-1;
+}
+button:hover {
+    @apply bg-slate-700;
+}
+button:active {
+    @apply bg-slate-600;
+}
 </style>
