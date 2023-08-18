@@ -26,7 +26,7 @@ h1 {
     position: relative;
     border: 3px solid rgb(255, 56, 56);
     transform: skewX(-15deg) rotate3d(0, 3, 0, 20deg);
-    max-width: 80ch;
+    max-width: 50ch;
 }
 .left::before {
     content: '';

@@ -3,6 +3,7 @@ export interface OBSData {
     title: string;
     track: string[];
     frogspeak: string;
+    flavortext: string[];
 }
 </script>
 
@@ -25,7 +26,9 @@ $: replaceTrack = song?.title || '';
 let fontSize = 16;
 let width = 20;
 $: song, $currentTracks, updateOBS();
+let flavortextinput = 'JEWELS OF THE FOREST, "MUSIC" TO MY EARS';
 
+$: flavortext = flavortextinput.split(',') || [];
 function updateOBS() {
     const isTrack = $activePlaylist.type === 'track';
 
@@ -36,11 +39,12 @@ function updateOBS() {
     const data: OBSData = {
         title: title,
         track: track,
-        frogspeak: ''
+        frogspeak: '',
+        flavortext: flavortext
     };
     dispatch('update', data);
 }
-
+let didMount = false;
 onMount(() => {
     const data = {
         track: replaceTrack,
@@ -78,7 +82,7 @@ function close() {
                     <a
                         href="http://localhost:9990"
                         target="_blank"
-                        class="text-sm py-1 px-3 underline hover:bg-slate-600 rounded-full underline"
+                        class="text-sm py-1 px-3 hover:bg-slate-600 rounded-full underline"
                     >
                         open in browser
                     </a>
@@ -97,6 +101,16 @@ function close() {
             <label for="titletext">obs heading:</label>
             <input
                 bind:value={obsTitle}
+                on:input={updateOBS}
+                class="bg-slate-600 px-4 py-1 w-full rounded-lg"
+                id="titletext"
+                type="text"
+            />
+            <label for="titletext"
+                >flavor text (separate by commas) (resets on app restart):</label
+            >
+            <input
+                bind:value={flavortextinput}
                 on:input={updateOBS}
                 class="bg-slate-600 px-4 py-1 w-full rounded-lg"
                 id="titletext"

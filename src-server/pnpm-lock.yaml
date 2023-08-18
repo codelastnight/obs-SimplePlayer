@@ -8,6 +8,9 @@ dependencies:
   socket.io-client:
     specifier: ^4.7.2
     version: 4.7.2
+  svelte-fast-marquee:
+    specifier: ^0.4.1
+    version: 0.4.1
 
 devDependencies:
   '@sveltejs/vite-plugin-svelte':
@@ -885,6 +888,10 @@ packages:
       - stylus
       - sugarss
     dev: true
+
+  /svelte-fast-marquee@0.4.1:
+    resolution: {integrity: sha512-M5fqQlFZZugoUQo6mOrer0QSe+XTmJnX4x+06x6S07Wlvy0dA8P9xjajPv8QymJgTCMVGHiv2KN16MgIp6JU/g==}
+    dev: false
 
   /svelte-hmr@0.15.3(svelte@4.2.0):
     resolution: {integrity: sha512-41snaPswvSf8TJUhlkoJBekRrABDXDMdpNpT2tfHIv4JuhgvHqLMhEPGtaQn0BmbNSTkuz2Ed20DF2eHw0SmBQ==}

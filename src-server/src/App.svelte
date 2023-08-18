@@ -7,6 +7,8 @@ import { io } from 'socket.io-client';
 import Textbox from './lib/Textbox.svelte';
 import type { OBSData } from '../../src/renderer/src/components/OBSSettings.svelte';
 import { onMount } from 'svelte';
+import Marquee from 'svelte-fast-marquee';
+
 const socket = io();
 const delay = 2000; //120000
 
@@ -15,17 +17,19 @@ const demoData: OBSData[] = [
     {
         title: 'test1',
         track: ['track name 1 long long track names', 'track 2'],
-        frogspeak: 'did you know. john wick'
+        frogspeak: 'did you know. john wick',
+        flavortext: []
     },
     {
         title: 'test2',
         track: ['track name 1', 'track 2', 'track3'],
-        frogspeak: 'did you know. john wick'
+        frogspeak: 'did you know. john wick',
+        flavortext: []
     }
 ];
 let title = '';
 let tracklisting = [];
-
+let flavortext = [];
 socket.on('onload', function (msg) {
     socket.emit('whoiam', 'reciever');
 });
@@ -37,7 +41,8 @@ socket.on('update', function (msg: OBSData) {
 
     title = msg.title;
     tracklisting = msg.track;
-    lilyState = 'listen';
+    flavortext = msg.flavortext;
+    lilyState = 'talk';
 });
 socket.on('disconnect', function () {
     title = 'disconnected';
@@ -50,8 +55,9 @@ function demo(num) {
 }
 </script>
 
+<!-- 
 <button on:click={() => demo(0)}>demo button</button>
-<button on:click={() => demo(1)}>demo button</button>
+<button on:click={() => demo(1)}>demo button</button> -->
 
 <main>
     <div class="flex">
@@ -60,7 +66,14 @@ function demo(num) {
             <div>
                 <Textbox classes="lilybox">
                     {#key title}
-                        <p class="title" in:fly={{ y: -20 }}><b>{title}</b></p>
+                        <Marquee direction="left" speed={20}>
+                            <p class="title padding" in:fly={{ y: -20 }}>
+                                <b>{title}</b>
+                            </p>
+                            {#each flavortext as text, index (index)}
+                                <p class="title padding">{text}</p>
+                            {/each}
+                        </Marquee>
                     {/key}
                     {#each tracklisting as text, index (text)}
                         {#if index === 0}
@@ -92,16 +105,21 @@ function demo(num) {
 </main>
 
 <style>
+.padding {
+    padding-left: 3rem;
+    padding-right: 3rem;
+}
 p {
     all: unset;
     display: block;
     color: blue;
+    font-size: 0.8rem;
 }
 .italic {
     font-style: italic;
 }
 .title {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
 }
 main {
     position: fixed;
