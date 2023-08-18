@@ -283,7 +283,7 @@ function setCurrentTracks(currentTime: number) {
 }
 onDestroy(() => {
     clearTimeout(playInterval);
-    playInterval = '';
+    playInterval = null;
     unloadUnusedAudio(true);
     console.log('----------COMPONENT RELOADED-------------');
 });
