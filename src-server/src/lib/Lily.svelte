@@ -1,7 +1,7 @@
 <script lang="ts">
 import { onMount } from 'svelte';
 
-const images = ['/lily_listen.png', '/lily_talk.png', '/lily_idle.png'];
+const images = ['/lily_listen_sm.png', '/lily_talk.gif', '/lily_idle_sm.png'];
 
 interface stateData {
     src: string;
@@ -26,7 +26,7 @@ type State = keyof typeof states;
 export let state: State = 'talk';
 export let defaultState: State = 'listen';
 
-const motionStates = ['rotate', 'bounce'];
+const motionStates = ['rotate', 'bounce', 'shake', 'spinZ'];
 let count = 0;
 
 $: src = states[state].src;
@@ -45,10 +45,12 @@ async function talkAnim() {
     }
     state = defaultState;
 }
-function talking(s) {
+async function talking(s) {
     console.log(s);
     if (s === 'talk') {
-        talkAnim();
+        src = images[1];
+        await delay(1000);
+        state = defaultState;
     } else {
     }
 }
@@ -68,8 +70,8 @@ onMount(() => {
 });
 </script>
 
-<div class="bob">
-    <div class="movement {state !== 'talk' ? motionStates[count] : ''}">
+<div class:bob={state !== 'listen'}>
+    <div class="movement {state === 'listen' ? motionStates[count] : ''}">
         <img
             class="lily {states[state].class}"
             {src}
@@ -112,6 +114,14 @@ onMount(() => {
     animation-name: bounceIn;
     animation-duration: 1s;
     transition-timing-function: ease-in;
+}
+
+.shake {
+    animation: shake 0.35s ease-in-out 0s 3;
+}
+.spinZ {
+    transform-style: preserve-3d;
+    animation: spinZ 1.2s ease-in-out;
 }
 @keyframes rotate {
     0%,
@@ -156,6 +166,31 @@ onMount(() => {
     }
     to {
         transform: scaleX(1);
+    }
+}
+@keyframes shake {
+    0% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(5px);
+    }
+    50% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
+    100% {
+        transform: translateX(0);
+    }
+}
+@keyframes spinZ {
+    0% {
+        transform: rotateZ(0deg);
+    }
+    100% {
+        transform: rotateZ(360deg);
     }
 }
 </style>

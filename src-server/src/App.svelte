@@ -12,24 +12,27 @@ import Marquee from 'svelte-fast-marquee';
 const socket = io();
 const delay = 2000; //120000
 
-let lilyState;
 const demoData: OBSData[] = [
     {
         title: 'test1',
         track: ['track name 1 long long track names', 'track 2'],
         frogspeak: 'did you know. john wick',
-        flavortext: []
+        flavortext: [],
+        isPlaying: true
     },
     {
         title: 'test2',
-        track: ['track name 1', 'track 2', 'track3'],
-        frogspeak: 'did you know. john wick',
-        flavortext: []
+        track: ['track name 1ss'],
+        frogspeak: '',
+        flavortext: [],
+        isPlaying: false
     }
 ];
 let title = '';
 let tracklisting = [];
 let flavortext = [];
+let frogspeak = '';
+let isPlaying = false;
 socket.on('onload', function (msg) {
     socket.emit('whoiam', 'reciever');
 });
@@ -42,28 +45,39 @@ socket.on('update', function (msg: OBSData) {
     title = msg.title;
     tracklisting = msg.track;
     flavortext = msg.flavortext;
+    isPlaying = msg.isPlaying;
+    frogspeak = msg.frogspeak;
     lilyState = 'talk';
 });
 socket.on('disconnect', function () {
     title = 'disconnected';
     tracklisting = ['try refreshing browser source or app?'];
+    isPlaying = false;
 });
 function demo(num) {
     title = demoData[num].title;
     tracklisting = demoData[num].track;
+    flavortext = demoData[num].flavortext;
+    isPlaying = demoData[num].isPlaying;
+    frogspeak = demoData[num].frogspeak;
     lilyState = 'talk';
 }
+let lilyState;
+$: lilyState = isPlaying ? 'listen' : 'idle';
 </script>
 
-<!-- 
-<button on:click={() => demo(0)}>demo button</button>
-<button on:click={() => demo(1)}>demo button</button> -->
-
+{#if import.meta.env.MODE === 'development'}
+    <button on:click={() => demo(0)}>demo button</button>
+    <button on:click={() => demo(1)}>demo button</button>
+{/if}
 <main>
-    <div class="flex">
-        <Lily bind:state={lilyState} />
+    <div class="flex items-center">
+        <Lily
+            bind:state={lilyState}
+            defaultState={isPlaying ? 'listen' : 'idle'}
+        />
         {#if title || tracklisting.length > 0}
-            <div>
+            <div transition:fly={{ y: -20 }}>
                 <Textbox classes="lilybox">
                     {#key title}
                         <Marquee direction="left" speed={20}>
@@ -97,9 +111,11 @@ function demo(num) {
         {/if}
     </div>
     <div>
-        <Textbox position="bottom">
-            <p>yumsicle</p>
-        </Textbox>
+        {#if !!frogspeak}
+            <Textbox position="bottom">
+                <p>{frogspeak}</p>
+            </Textbox>
+        {/if}
         <Froggie />
     </div>
 </main>
@@ -107,6 +123,7 @@ function demo(num) {
 <style>
 .padding {
     padding-left: 3rem;
+    padding-bottom: 0.5rem;
     padding-right: 3rem;
 }
 p {
@@ -133,6 +150,9 @@ main {
 }
 .flex {
     display: flex;
+}
+.items-center {
+    justify-items: center;
 }
 :global(.lilybox) {
     margin-top: 3rem;

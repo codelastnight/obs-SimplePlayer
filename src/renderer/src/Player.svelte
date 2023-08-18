@@ -265,12 +265,15 @@ function setCurrentTracks(currentTime: number) {
     defer = index;
     let current = [];
     const text = trackListData[`${tracklistArray[index]}`] as string;
+    console.log(text);
     if (text.trim().startsWith('+')) {
         current = [];
         for (let i = 0; i < index + 1; i++) {
-            const prevText = trackListData[`${tracklistArray[index - i]}`];
+            const prevText = trackListData[
+                `${tracklistArray[index - i]}`
+            ] as string;
 
-            current = [prevText, ...current];
+            current = [prevText.replace('+', ''), ...current];
             if (!prevText.trim().startsWith('+')) {
                 break;
             }

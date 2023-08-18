@@ -4,6 +4,7 @@ export interface OBSData {
     track: string[];
     frogspeak: string;
     flavortext: string[];
+    isPlaying: boolean;
 }
 </script>
 
@@ -12,7 +13,7 @@ import { faXmark, faGear } from '@fortawesome/free-solid-svg-icons';
 import Fa from 'svelte-fa';
 import { createEventDispatcher, onMount } from 'svelte';
 import { ClientSong } from '../Player.svelte';
-import { currentTracks, activePlaylist } from '../store';
+import { currentTracks, activePlaylist, isPlaying } from '../store';
 
 export let song: ClientSong;
 
@@ -20,12 +21,12 @@ let obsVisible = false;
 
 const dispatch = createEventDispatcher();
 
-let obsTitle = 'DJ:';
+let obsTitle = 'DJ: ';
 
 $: replaceTrack = song?.title || '';
 let fontSize = 16;
 let width = 20;
-$: song, $currentTracks, updateOBS();
+$: song, $currentTracks, $isPlaying, updateOBS();
 let flavortextinput = 'JEWELS OF THE FOREST, "MUSIC" TO MY EARS';
 
 $: flavortext = flavortextinput.split(',') || [];
@@ -40,7 +41,8 @@ function updateOBS() {
         title: title,
         track: track,
         frogspeak: '',
-        flavortext: flavortext
+        flavortext: flavortext,
+        isPlaying: $isPlaying
     };
     dispatch('update', data);
 }
