@@ -16,6 +16,7 @@ import { createEventDispatcher, onMount } from 'svelte';
 import { ClientSong } from '../Player.svelte';
 import { currentTracks, activePlaylist, isPlaying, ribbitText } from '../store';
 import Switch from './Switch.svelte';
+import Dialog from './Dialog.svelte';
 
 export let song: ClientSong;
 
@@ -102,11 +103,38 @@ function runClock() {
     }, timeToNextTick);
 }
 
-// display the initial clock
-
-// start the running clock display that will update right on the minute change
+let froggiefactsshow = false;
 </script>
 
+{#if $ribbitText.length > 0}
+    <button
+        class="rounded-full gap-x-2 px-4 py-2 flex items-center hover:bg-slate-70"
+        on:click={() => (froggiefactsshow = true)}
+    >
+        show froggie facts
+    </button>
+{:else}
+    <p class="text-sm">
+        froggie facts not found. remember to put 'Ribbit-Text.txt' into the
+        track folder. then refresh the folder
+    </p>
+{/if}
+<Dialog bind:isOpen={froggiefactsshow} title="froggie facts">
+    <div class="flex flex-col h-[50vh] w-[50vw] overflow-y-auto">
+        {#if !!$ribbitText}
+            {#each $ribbitText as text, index (index)}
+                <div class="listitem grid gap-x-2 mb-3 text-sm">
+                    <p class="text-white/75 font-bold">
+                        {#if ribbitIndex + 1 === index}
+                            up next:
+                        {/if}
+                    </p>
+                    <p>{text}</p>
+                </div>
+            {/each}
+        {/if}
+    </div>
+</Dialog>
 <button
     type="button"
     on:click={() => (obsVisible = !obsVisible)}
@@ -196,6 +224,9 @@ function runClock() {
 {/if}
 
 <style lang="postcss">
+.listitem {
+    grid-template-columns: 4rem auto;
+}
 .input {
     @apply w-full rounded-lg bg-slate-600 px-4 py-1;
 }
