@@ -53,8 +53,6 @@ function updateOBS() {
     dispatch('update', data);
 }
 
-$: unsavedAnnouncment = announcements !== announcementInput.split('\n');
-
 function setflavortext() {
     flavortext = flavortextinput.split(',') || [];
     updateOBS();
@@ -152,7 +150,6 @@ function close() {
                 bind:value={announcementInput}
             ></textarea>
             <button class="text-sm" on:click={setAnnouncements}>
-                {unsavedAnnouncment ? '(unsaved) ' : ''}
                 update Announcmeent text
             </button>
         </div>

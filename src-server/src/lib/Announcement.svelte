@@ -2,6 +2,11 @@
 import Marquee from 'svelte-fast-marquee';
 import { fly } from 'svelte/transition';
 export let announcements = [];
+
+$: textlength = announcements.reduce(
+    (accumulator, currentValue) => accumulator + currentValue,
+    ''
+).length;
 </script>
 
 {#if announcements.length > 0}
@@ -10,15 +15,17 @@ export let announcements = [];
             {#each announcements as text, index (index)}
                 <p><b>{text}</b></p>
             {/each}
-            <p>---</p>
-            {#each announcements as text, index (index)}
-                <p><b>{text}</b></p>
-            {/each}
-            <p>---</p>
-            {#each announcements as text, index (index)}
-                <p><b>{text}</b></p>
-            {/each}
-            <p>---</p>
+
+            {#if textlength < 200}
+                {#each announcements as text, index (index)}
+                    <p><b>{text}</b></p>
+                {/each}
+            {/if}
+            {#if textlength < 100}
+                {#each announcements as text, index (index)}
+                    <p><b>{text}</b></p>
+                {/each}
+            {/if}
         </Marquee>
     </section>
 {/if}
