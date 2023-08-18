@@ -59,8 +59,8 @@ onMount(() => {
         let index = (count + 1) % motionStates.length;
 
         count = index;
-        timeout = setTimeout(tick, 2000);
-    }, 2000);
+        timeout = setTimeout(tick, 5000);
+    }, 5000);
 
     return () => {
         clearTimeout(timeout);

@@ -18,9 +18,12 @@ const demoData: OBSData[] = [
         title: 'test1',
         track: ['track name 1 long long track names'],
         frogspeak: 'did you know. john wick',
-        flavortext: [],
+        flavortext: ['adasdasas', 'ASDJASDSADJASDAHDS'],
         isPlaying: true,
-        announcements: ['raffle goin on rn', 'check in on this raffle']
+        announcements: [
+            'raffle goin o DADSDDASASDADASDSADDASn rn',
+            'check in on this raffle'
+        ]
     },
     {
         title: 'test2',
@@ -106,7 +109,7 @@ $: lilyState = isPlaying ? 'listen' : 'idle';
                                 <b>{title}</b>
                             </p>
                             {#each flavortext as text, index (index)}
-                                <p class="title padding">{text}</p>
+                                <p class="padding">{text}</p>
                             {/each}
                         </Marquee>
                     {/key}
