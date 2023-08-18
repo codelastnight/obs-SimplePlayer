@@ -68,6 +68,14 @@ onMount(() => {
     startServerConnection();
 
     checkSettings();
+    window.api.getRibbitText(path);
+});
+let ribbitTexts = [];
+window.api.onRibbitTextGet((e, data) => {
+    if (data.type !== 'ok') return;
+
+    ribbitTexts = data.data;
+    console.log(ribbitTexts);
 });
 
 let obsSettingData;

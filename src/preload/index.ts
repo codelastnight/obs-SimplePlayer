@@ -29,6 +29,10 @@ const api = {
     getTrackList: (filePath) => ipcRenderer.send('dir:getTrackList', filePath),
     onTrackListGet: (callback: (e, data: any) => void) =>
         ipcRenderer.on('dir:getTrackList', callback),
+    getRibbitText: (filePath) =>
+        ipcRenderer.send('dir:getRibbitText', filePath),
+    onRibbitTextGet: (callback: (e, data: any) => void) =>
+        ipcRenderer.on('dir:getRibbitText', callback),
     openDir: (type: listType) => ipcRenderer.send('dir:open', type),
     logging: (callback) => ipcRenderer.on('logging', callback),
     winClose: () => ipcRenderer.send('win:invoke', 'close'),

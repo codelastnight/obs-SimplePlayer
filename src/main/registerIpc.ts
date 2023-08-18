@@ -127,7 +127,35 @@ export function registerIpc() {
 
         win?.webContents.send('dir:getTrackList', { type: 'error' });
     });
+    ipcMain.on('dir:getRibbitText', async (event, filePath) => {
+        const win = BrowserWindow.fromWebContents(event.sender);
 
+        const dir = dirname(filePath);
+        const fileName = 'Ribbit-Text';
+
+        const list = await readdir(dir);
+        for (const [index, file] of list.entries()) {
+            if (index > 200) return;
+            if (!file) continue;
+            if (!file.endsWith('.txt')) continue;
+            const path = resolve(dir, fileName + '.txt');
+            console.log('looking for tracklist:', path);
+            if (file === fileName + '.txt') {
+                const data = await readFile(path, 'utf-8');
+                const arr = data.split(/\r?\n/);
+
+                console.log('got ribbitlist!');
+                win?.webContents.send('dir:getRibbitText', {
+                    type: 'ok',
+                    data: arr
+                });
+                return;
+            }
+        }
+        console.log('no ribbitlist!');
+
+        win?.webContents.send('dir:getRibbitText', { type: 'error' });
+    });
     ipcMain.on('data:checkUpdate', () => {
         autoUpdater.checkForUpdatesAndNotify();
     });
